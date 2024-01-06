@@ -43,4 +43,20 @@ export class Camera {
         return mat4.perspective(mat4.create(), fovy, aspect, near, far);
     }
 
+    // Setter methods for dynamic adjustments
+    setFovy(newFovy) {
+        this.fovy = newFovy;
+    }
+
+    setAspect(newAspect) {
+        this.aspect = newAspect;
+    }
+
+    setNear(newNear) {
+        this.near = newNear;
+    }
+
+    setFar(newFar) {
+        this.far = newFar;
+    }
 }
