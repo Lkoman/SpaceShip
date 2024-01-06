@@ -6,12 +6,7 @@ import { LinearAnimator } from './common/engine/animators/LinearAnimator.js';
 import * as EasingFunctions from './common/engine/animators/EasingFunctions.js';
 import { quat, vec3, mat4 } from './lib/gl-matrix-module.js';
 import { GLTFLoader } from './common/engine/loaders/GLTFLoader.js';
-import {
-    Camera,
-    Model,
-    Node,
-    Transform,
-} from './common/engine/core.js';
+import { Camera, Model, Node, Transform } from './common/engine/core.js';
 
 
 import { Renderer } from './Renderer.js';
