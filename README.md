@@ -1,0 +1,25 @@
+RG WEBGL GAME - ZAHTEVE SEMINARJA
+- Seminar mora biti razvit z uporabo WebGL 2
+- Prepovedana je uporaba igralnih pogonov (Unity, Unreal, Godot, ThreeJS, BabylonJS ...)
+- Osebki/predmeti se gibljejo po 3D prostoru
+- Vsaj z enim osebkom/predmetom lahko interagiramo (npr. premikanje po prostoru)
+- Vsaj en osebek/predmet mora interagirati z ostalimi osebki/predmeti (pobiranje predmetov, odpiranje vrat, pogovor z osebkom ...)
+- Prostor mora vsebovati več osebkov/predmetov
+- Prostor je lahko
+  - Raven ali razgiban
+  - Statičen ali dinamičen
+  - Teksturiran ali obarvan
+  - Osvetljen ali ne
+  - Osenčen ali ne
+- Osebki živijo in se gibajo v 3D prostoru
+- Osebki lahko upoštevajo ovire (zaznavanje trkov)
+- Vizualizacija osebkov/predmetov je lahko različna:
+  - Primitiv (kocka, krogla ...)
+  - Kompleksnejši predmet
+  - Teksturiran ali obarvan 3D model
+  - Animiran 3D model
+- V sceno mora biti vključena vsaj ena kamera
+- Kamera je lahko
+  - Prvoosebna ali tretjeosebna
+  - Statična ali dinamična
+  - Animirana
