@@ -1,4 +1,5 @@
-RG WEBGL GAME - ZAHTEVE SEMINARJA
+# RG WEBGL GAME
+## ZAHTEVE SEMINARJA
 - Seminar mora biti razvit z uporabo WebGL 2
 - Prepovedana je uporaba igralnih pogonov (Unity, Unreal, Godot, ThreeJS, BabylonJS ...)
 - Osebki/predmeti se gibljejo po 3D prostoru
