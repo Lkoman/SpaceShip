@@ -21,6 +21,7 @@ export class FirstPersonController {
 
         this.keys = {};
         this.eKeyJustPressed = false;
+        this.isShiftPressed = false;
 
         this.pitch = pitch;
         this.yaw = yaw;
@@ -116,7 +117,7 @@ export class FirstPersonController {
         vec3.scale(holdPosition, forward, 0.1);
         for (let key of keys) {
             if (this.checkCollision(playerBox, key.boundingBoxBig)) {
-                //console.log("Collision with key detected!");
+                console.log("Collision with key detected!");
                 showPickupText(true);
 
                 if (this.eKeyJustPressed) {
@@ -168,8 +169,16 @@ export class FirstPersonController {
             }
         }
 
+        // Check if any key is currently picked up
+        let isAnyKeyPickedUp = keys.some(key => key.pickedUp);
+
+        let sprintMultiplier = 1;
+        if (this.isShiftPressed && !isAnyKeyPickedUp) {
+            sprintMultiplier = 2; // Adjust this value for desired sprint speed
+        }
+
         // Update velocity
-        vec3.scaleAndAdd(this.velocity, this.velocity, acc, dt * this.acceleration);
+        vec3.scaleAndAdd(this.velocity, this.velocity, acc, dt * this.acceleration * sprintMultiplier);
 
         // If there is no user input, apply decay.
         if (!this.keys['KeyW'] &&
@@ -181,10 +190,11 @@ export class FirstPersonController {
             vec3.scale(this.velocity, this.velocity, decay);
         }
 
-        // Limit speed to prevent accelerating to infinity and beyond.
+        // Limit speed to prevent accelerating to infinity and beyond
+        // Add sprint multiplier if shift is pressed
         const speed = vec3.length(this.velocity);
         if (speed > this.maxSpeed) {
-            vec3.scale(this.velocity, this.velocity, this.maxSpeed / speed);
+            vec3.scale(this.velocity, this.velocity, (this.maxSpeed / speed) * sprintMultiplier);
         }
 
         if (transform) {
@@ -222,10 +232,16 @@ export class FirstPersonController {
         if (e.code === 'KeyE' && !this.keys[e.code]) {
             this.eKeyJustPressed = true;
         }
+        if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+            this.isShiftPressed = true;
+        }
         this.keys[e.code] = true;
     }
 
     keyupHandler(e) {
+        if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+            this.isShiftPressed = false;
+        }
         this.keys[e.code] = false;
     }
 

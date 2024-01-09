@@ -81,8 +81,8 @@ key2Node.addComponent(new Transform({
 }));
 
 // Set the position of keys
-key1Node.components[0].translation = [0, 0.3, 0]; // x, z, y
-key2Node.components[0].translation = [2, 0.3, 4]; // x, z, y
+key1Node.components[0].translation = [1, 0.3, 0]; // x, z, y
+key2Node.components[0].translation = [2, 0.3, 1]; // x, z, y
 keys.push(key1Node);
 keys.push(key2Node);
 
@@ -184,23 +184,20 @@ export function calculateWorldBoundingBox(node) {
         maxY = Math.max(maxY, transformedY);
         maxZ = Math.max(maxZ, transformedZ);
     }
-	/*node.dimensions = {
-        w: maxX - minX,
-        h: maxX - minX,
-        d: maxY - minY
-    };*/
 
-	node.rezerva = (maxY - minY)*3;
+	if (node.rezerva == undefined) {
+		node.rezerva = Math.max((maxX - minX)*3.5, (maxZ - minZ)*3.5, (maxY - minY)*3.5);
+	}
+
+	node.boundingBox = {
+        min: {x: minX, y: minY, z: minZ},
+        max: {x: maxX, y: maxY, z: maxZ}
+    };
 
 	node.boundingBoxBig = {
 		min: {x: minX - node.rezerva, z: minZ, y: minY - node.rezerva},
 		max: {x: maxX + node.rezerva, z: maxZ, y: maxY + node.rezerva}
 	};
-
-    node.boundingBox = {
-        min: {x: minX, y: minY, z: minZ},
-        max: {x: maxX, y: maxY, z: maxZ}
-    };
 }
 
 // Show "pick up with E" text above pickup-able objects
