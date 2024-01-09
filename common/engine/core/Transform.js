@@ -26,5 +26,4 @@ export class Transform {
         mat4.getTranslation(this.translation, matrix);
         mat4.getScaling(this.scale, matrix);
     }
-
 }

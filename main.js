@@ -11,6 +11,7 @@ import { Camera, Model, Node, Transform } from './common/engine/core.js';
 
 import { Renderer } from './Renderer.js';
 import { Light } from './Light.js';
+import { Wall } from './Wall.js';
 
 // Select canvas and initialize renderer
 const canvas = document.querySelector('canvas');
@@ -20,40 +21,84 @@ await renderer.initialize();
 //
 // LOAD MODELS
 //
-let keys = [];
-let doors = [];
-let objects = []; // like cubes
-let walls = [];
+export let keys = [];
+export let doors = [];
+export let objects = []; // like cubes
+export let walls = [];
 
 // Load the level model
 const levelLoader = new GLTFLoader();
 await levelLoader.load('common/models/Level.gltf');
 const scene = levelLoader.loadScene(levelLoader.defaultScene);
+const levelNode = scene.find(node => node.getComponentOfType(Model));
+console.log("Level node");
+console.log(levelNode);
 
 // Set up the camera
 const camera = scene.find(node => node.getComponentOfType(Camera));
 camera.addComponent(new FirstPersonController(camera, document.body, { distance : 2}));
 
-const modelNode = scene.find(node => node.getComponentOfType(Model));
+// check outputs camera
+const cameraTransform = camera.getComponentOfType(Transform);
+const cameraWorldPosition = [cameraTransform.matrix[12], cameraTransform.matrix[13], cameraTransform.matrix[14]];
+console.log('Camera World Position:', cameraWorldPosition);
+console.log("camera");
+console.log(camera);
 
-modelNode.addComponent(new Transform({ 
-	translation : [0,0,0],
+const modelNode = scene.find(node => node.getComponentOfType(Model));
+modelNode.addComponent(new Transform({
 	scale : [1,1,1],
+	translation : [0,0,0],
 }));
 
+let wall1 = new Wall( // x, z, y
+	[2.12119, 0.636927, 0.283369], // leftUp
+	[2.12119, -0.014845, 0.283369], // leftDown
+	[2.12119, 0.644094, 2.20138], // rightUp
+	[2.12119, -0.008538, 2.20138] // rightDown
+);
+walls.push(wall1);
+
+// Add key models
 const key1Loader = new GLTFLoader();
 await key1Loader.load('common/models/Key1.gltf');
-const scene2 = key1Loader.loadScene(key1Loader.defaultScene);
-const key1Node = scene2.find(node => node.getComponentOfType(Model));
+const sceneKey1 = key1Loader.loadScene(key1Loader.defaultScene);
+const key1Node = sceneKey1.find(node => node.getComponentOfType(Model));
 
-key1Node.addComponent(new Transform({ 
-	translation : [0,0.05,0.2],
+key1Node.addComponent(new Transform({
 	scale : [1,1,1],
+	translation : [0,0,0], // x, z, y
 }));
+
+const key2Loader = new GLTFLoader();
+await key2Loader.load('common/models/Key2.gltf');
+const sceneKey2 = key2Loader.loadScene(key2Loader.defaultScene);
+const key2Node = sceneKey2.find(node => node.getComponentOfType(Model));
+
+key2Node.addComponent(new Transform({
+	scale : [1,1,1],
+	translation : [0,0,0], // x, z, y
+}));
+
+// Set the position of keys
+key1Node.components[0].translation = [0, 0.3, 0]; // x, z, y
+key2Node.components[0].translation = [2, 0.3, 4]; // x, z, y
+keys.push(key1Node);
+keys.push(key2Node);
+
+// Calculate the bounding boxes for all keys
+for (let key of keys) {
+	calculateWorldBoundingBox(key);
+	key.pickedUp = false;
+}
 
 // Add the key to the level
 scene.addChild(key1Node);
+scene.addChild(key2Node);
 
+//
+// LIGHT COMPONENTS
+//
 const light = new Node();
 light.addComponent(new Light({
 	color : [1.0,1.0,1.0,1.0],
@@ -110,3 +155,55 @@ function resize({ displaySize : { width, height }}) {
 new ResizeSystem({canvas, resize}).start();
 
 new UpdateSystem({update, render}).start();
+
+export function calculateWorldBoundingBox(node) {
+    let minX = Infinity, minY = Infinity, minZ = Infinity;
+    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+
+    // Get the world matrix
+    let worldMatrix = node.components[0].matrix;
+
+    for (let vertex of node.components[1].primitives[0].mesh.vertices) {
+		if (vertex.normal.length === 0 && vertex.tangent.length === 0 && vertex.texcoords.length === 0) {
+			break;
+        }
+
+		// Original vertex position, node.components[0].translation = [x, z, y]
+        let x = vertex.position[0], z = vertex.position[1], y = vertex.position[2];
+
+        // Apply the world matrix to the vertex position
+        let transformedX = worldMatrix[0] * x + worldMatrix[4] * y + worldMatrix[8] * z + worldMatrix[12];
+        let transformedZ = worldMatrix[1] * x + worldMatrix[5] * y + worldMatrix[9] * z + worldMatrix[13];
+        let transformedY = worldMatrix[2] * x + worldMatrix[6] * y + worldMatrix[10] * z + worldMatrix[14];
+
+        // Update the min and max coordinates
+        minX = Math.min(minX, transformedX);
+        minY = Math.min(minY, transformedY);
+        minZ = Math.min(minZ, transformedZ);
+        maxX = Math.max(maxX, transformedX);
+        maxY = Math.max(maxY, transformedY);
+        maxZ = Math.max(maxZ, transformedZ);
+    }
+	/*node.dimensions = {
+        w: maxX - minX,
+        h: maxX - minX,
+        d: maxY - minY
+    };*/
+
+	node.rezerva = (maxY - minY)*3;
+
+	node.boundingBoxBig = {
+		min: {x: minX - node.rezerva, z: minZ, y: minY - node.rezerva},
+		max: {x: maxX + node.rezerva, z: maxZ, y: maxY + node.rezerva}
+	};
+
+    node.boundingBox = {
+        min: {x: minX, y: minY, z: minZ},
+        max: {x: maxX, y: maxY, z: maxZ}
+    };
+}
+
+// Show "pick up with E" text above pickup-able objects
+export function showPickupText(show) {
+    //document.getElementById('pickup-text').style.display = show ? 'block' : 'none';
+}
