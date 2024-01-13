@@ -90,6 +90,7 @@ export class FirstPersonController {
         // Collision detection
         //
         // Collision detection with walls
+        // Collision detection with walls
         let collisionNormals = [];
         let currentPosition = vec3.clone(transform.translation);
         const numSteps = 5;
@@ -107,11 +108,7 @@ export class FirstPersonController {
                 for (let object of playerNode.objects) {
                     let collisionInfo = this.checkCollisionLevel(nextPosition[0], nextPosition[2], object);
                     if (collisionInfo.collision) {
-                        // Collect normals for all collisions
-                        let invertedNormal = vec3.scale(vec3.create(), collisionInfo.normal, -1);
-                        collisionNormals.push(invertedNormal);
-
-                        // Aggregate penetration depths
+                        collisionNormals.push(collisionInfo.normal);
                         totalPenetrationDepth += collisionInfo.penetrationDepth;
                     }
                 }
@@ -123,39 +120,26 @@ export class FirstPersonController {
             finalPositionSafe = false;
         }
 
-        // Calculate average normal to determine variance
+        // Calculate the average normal if there are multiple collisions
         let averageNormal = vec3.create();
-        for (let normal of collisionNormals) {
-            vec3.add(averageNormal, averageNormal, normal);
-        }
-        vec3.scale(averageNormal, averageNormal, 1 / collisionNormals.length);
-
-        // Determine variance
-        let variance = 0;
-        for (let normal of collisionNormals) {
-            let diff = vec3.subtract(vec3.create(), normal, averageNormal);
-            variance += vec3.length(diff);
-        }
-        variance /= collisionNormals.length;
-        console.log("Collision Normals Variance: ", variance);
-
-        const varianceThreshold = 0.01;
-
-        // Adjust velocity based on normals and variance
-        if (collisionNormals.length > 0 && finalPositionSafe) {
+        if (collisionNormals.length > 0) {
             for (let normal of collisionNormals) {
-                // If variance is above the threshold, invert the normal; otherwise, use it as is
-                let adjustedNormal = variance > varianceThreshold ? vec3.scale(vec3.create(), normal, -1) : vec3.clone(normal);
-        
-                const dotProduct = vec3.dot(this.velocity, adjustedNormal);
-                if (dotProduct < 0) {
-                    const projection = vec3.scale(vec3.create(), adjustedNormal, dotProduct);
-                    vec3.subtract(this.velocity, this.velocity, projection);
-                }
+                vec3.add(averageNormal, averageNormal, normal);
             }
+            vec3.scale(averageNormal, averageNormal, 1 / collisionNormals.length);
         }
 
-        // Calculate the final potential position based on adjusted velocity
+        // Apply a bounce if collision detected
+        if (totalPenetrationDepth > 0) {
+            let bounce = vec3.scale(vec3.create(), averageNormal, totalPenetrationDepth);
+            vec3.add(currentPosition, currentPosition, bounce); // Apply bounce to current position
+            vec3.copy(transform.translation, currentPosition);
+
+            // Reset totalPenetrationDepth after applying bounce
+            totalPenetrationDepth = 0;
+        }
+
+        // Calculate the final potential position based on adjusted velocity (after bounce)
         let finalPotentialPosition = vec3.clone(currentPosition);
         vec3.scaleAndAdd(finalPotentialPosition, currentPosition, this.velocity, dt);
 
@@ -232,14 +216,16 @@ export class FirstPersonController {
         // Update velocity
         vec3.scaleAndAdd(this.velocity, this.velocity, acc, dt * this.acceleration * sprintMultiplier);
 
+        const velocityThreshold = 0.001;
         // If there is no user input, apply decay.
-        if (!this.keys['KeyW'] &&
-            !this.keys['KeyS'] &&
-            !this.keys['KeyD'] &&
-            !this.keys['KeyA'])
-        {
+        if (!this.keys['KeyW'] && !this.keys['KeyS'] && !this.keys['KeyD'] && !this.keys['KeyA']) {
             const decay = Math.exp(dt * Math.log(1 - this.decay));
             vec3.scale(this.velocity, this.velocity, decay);
+
+            // If velocity is below the threshold, set it to zero
+            if (vec3.length(this.velocity) < velocityThreshold) {
+                vec3.set(this.velocity, 0, 0, 0);
+            }
         }
 
         // Limit speed to prevent accelerating to infinity and beyond
@@ -342,17 +328,23 @@ export class FirstPersonController {
         const y1 = object[3].y;
         const x2 = object[4].x;
         const y2 = object[4].y;
-    
+
         // Buffer area for walls
         const buffer = 0.15;
 
         // Calculate the line segment vector
         const lineVec = vec3.fromValues(x2 - x1, 0, y2 - y1);
-        vec3.normalize(lineVec, lineVec); // Normalize the line segment vector
+        vec3.normalize(lineVec, lineVec);
 
-        // Calculate the normal of the line segment (wall)
-        const normal = vec3.fromValues(-lineVec[2], 0, lineVec[0]); // Rotate 90 degrees to get the normal
-        
+        // Normal of the line segment (wall), initially pointing in one direction
+        let normal = vec3.fromValues(-lineVec[2], 0, lineVec[0]);
+
+        // Check which side of the line segment the player is on
+        const side = Math.sign((x2 - x1) * (playerY - y1) - (y2 - y1) * (playerX - x1));
+        if (side < 0) {
+            // If the player is on the other side, invert the normal
+            vec3.scale(normal, normal, -1);
+        }
         // Function to calculate distance from point to line segment
         const distancePointLineSegment = (px, py, x1, y1, x2, y2) => {
             const A = px - x1;

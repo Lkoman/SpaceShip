@@ -25,21 +25,22 @@ export let keys = [];
 export let doors = [];
 export let traps = [];
 export let playerHeight = 0.3999999761581421;
+let victory = 0; // 0 = nothing, -1 = defeat, 1 = victory
+
 
 // Load the level model
 const levelLoader = new GLTFLoader();
-await levelLoader.load('common/models/Level2.gltf');
+await levelLoader.load('common/models/Level.gltf');
 const scene = levelLoader.loadScene(levelLoader.defaultScene);
 const levelNode = scene.find(node => node.getComponentOfType(Model));
 
 // Calculate the QuadTree for the level
 const levelBounds = new Rectangle(-(calculateDimensions(levelNode).w/2), -(calculateDimensions(levelNode).d/2), calculateDimensions(levelNode).w/2, calculateDimensions(levelNode).d/2);
-console.log(levelBounds);
 
-export const quadTree = new QuadTree(levelBounds, 150);
+export const quadTree = new QuadTree(levelBounds, 200);
 extractTrianglesFromLevel(levelNode, playerHeight);
 
-quadTree.logNodeDetails();
+//quadTree.logNodeDetails();
 
 // Set up the camera
 export const camera = scene.find(node => node.getComponentOfType(Camera));
@@ -255,9 +256,6 @@ function extractTrianglesFromLevel(levelNode, playerHeight) {
             quadTree.insert([vertex1, vertex2, vertex3, lineVertex1, lineVertex2, minZ]);
         }
     }
-    console.log("Triangles");
-    console.log(triangles);
-    //return triangles;
 }
 
 function getVertexByIndex(mesh, index) {

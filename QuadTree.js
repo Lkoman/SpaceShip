@@ -40,9 +40,6 @@ export class QuadTree {
 
     // Subdivide the node into four child quadrants
     subdivide() {
-        console.log("---------------------");
-        console.log(this);
-        console.log(this.objects);
         // Calculate midpoints for subdividing
         const midX = (this.boundary.minX + this.boundary.maxX) / 2;
         const midY = (this.boundary.minY + this.boundary.maxY) / 2;
@@ -52,12 +49,6 @@ export class QuadTree {
         const tl = new Rectangle(this.boundary.minX, this.boundary.minY, midX, midY); // Top Left
         const br = new Rectangle(midX, midY, this.boundary.maxX, this.boundary.maxY); // Bottom Right
         const tr = new Rectangle(this.boundary.minX, midY, midX, this.boundary.maxY); // Bottom Left
-
-        console.log("Rectangles");
-        console.log(tr);
-        console.log(tl);
-        console.log(br);
-        console.log(bl);
 
         // Create child QuadTrees with the new boundaries
         this.topRight = new QuadTree(tr, this.capacity);
