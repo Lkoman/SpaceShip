@@ -1,15 +1,160 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
-    <title>SpaceShip</title>
+    <title>Ishimura Evakuacija</title>
     <link rel="stylesheet" href="common/style.css">
     <script src="lib/gl-matrix-min.js"></script>
     <script type="module" src="main.js"></script>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 </head>
+
 <body>
-    <div class="fullscreen pixelated">
-        <canvas></canvas>
+    <div id="start-menu" class="fullscreen pixelated">
+        <!-- Video background -->
+        <video id="video-background" autoplay muted loop>
+            <source src="MenuAnimationLQ.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+
+        <!-- Content overlay -->
+        <div id="content-overlay">
+            <img src="Ishimura_Evakuacija_text.png" alt="text">
+            <p><input type="text" id="playerName" placeholder="uporabniško ime" required></p>
+            <p><button id="start-button">ZAČNI IGRO</button></p>
+        </div>
     </div>
+
+    <audio id="menu-sound" loop>
+        <source src="menu-sound.mp3" type="audio/mpeg">
+        Your browser does not support the audio tag.
+    </audio>
+
+    <audio id="Siren">
+        <source src="Siren.mp3" type="audio/mpeg">
+        Your browser does not support the audio tag.
+    </audio>
+
+    <audio id="ambient" loop>
+        <source src="ambient-sound.mp3" type="audio/mpeg">
+        Your browser does not support the audio tag.
+    </audio>
+
+    <div id="controls">
+        <table style="width:100%">
+            <tr>
+                <td><img src="WASD_keys.png" id="control-img"></td>
+                <td>hoja</td>
+            </tr>
+            <tr>
+                <td><img src="Shift_key.png" id="control-img" style="scale: 70%;"></td>
+                <td>tek</td>
+            </tr>
+            <tr>
+                <td><img src="E_key.png" id="control-img" style="scale: 70%;"></td>
+                <td>interakcija</td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="story-box" style="display: none;">
+        <p>
+            <b><i>POZOR! POZOR!</i></b><br>
+            <b><i>Takjo zapustite in evakuirajte ladijo!</i></b><br>
+            <hr>
+            Vesoljsko plovilo je trčilo z radioaktivnim meteoritom, sprožilo pa je nujno evakuacijo. Kljub temu, da so
+            se že avtomatsko vklopili varnostni sistemi, so se vrata zaklenila in preprečila izhod.<br>
+            Zdaj ste v zaporu lastne ladje, zato se morate podati na misijo, da poiščete ključne kartice in odklenete
+            vrata, preden se situacija poslabša. Časa je malo, radioaktivne emisije pa se hitro širijo po plovilu.<br>
+            Skozi ozke hodnike in temne sobe se podajate, iskaje ključne kartice, ki so skrite po različnih delih ladje.
+            Sistem varnostnih ukrepov postavlja izzive pred vami, saj morate premagati zapletene naloge, da bi prišli do
+            vsake kartice.<br>
+            Medtem ko hitite proti rešilnemu plovilu, vas spremlja napetost in negotovost. Vsak trenutek je dragocen,
+            saj radioaktivne nevarnosti rastejo. Ali boste uspeli odkleniti vrata in pobegniti prav v zadnjem trenutku,
+            ali pa se bo vaša usoda zapečatila v tem vesoljskem trilerju?
+        </p>
+        <p id="story-buttonP" align="right"><button id="story-button"><img src="Yellow_Arrow.png" /></button></p>
+        <p id="help-text"><i>Pritisnite ALT, da prikažete miško</i></p>
+    </div>
+
+    <div id="timer" style="display: none;">00:00</div>
+
+    <div id="game-container" class="fullscreen pixelated" style="display: none;">
+        <canvas id="game-canvas"></canvas>
+    </div>
+
+    <script>
+        const video = document.getElementById('video-background');
+        const siren = document.getElementById('Siren');
+        const menuSound = document.getElementById('menu-sound');
+        const ambient = document.getElementById('ambient');
+        menuSound.play()
+        video.playbackRate = 0.8;
+        siren.volume = 0.3;
+
+        let startTime;
+        let timerInterval;
+
+        // Function to update the timer display
+        function updateTimer() {
+            const currentTime = new Date();
+            const elapsedTime = Math.floor((currentTime - startTime) / 1000);
+
+            const minutes = Math.floor(elapsedTime / 60);
+            const seconds = elapsedTime % 60;
+
+            // Format the time as MM:SS
+            const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            document.getElementById('timer').textContent = formattedTime;
+        }
+
+        // Function to check if the player name is empty
+        function isPlayerNameEmpty() {
+            const playerNameInput = document.getElementById('playerName');
+            return playerNameInput.value.trim() === '';
+        }
+
+        // Function to enable or disable the Start Game button based on the input
+        function updateStartButtonState() {
+            const startButton = document.getElementById('start-button');
+            startButton.disabled = isPlayerNameEmpty();
+        }
+
+        // Add event listener to player name input for real-time validation
+        document.getElementById('playerName').addEventListener('input', updateStartButtonState);
+
+        // Add event listener to start button
+        document.getElementById('start-button').addEventListener('click', function () {
+            if (!isPlayerNameEmpty()) {
+                // Hide the start menu
+                document.getElementById('start-menu').style.display = 'none';
+                siren.play();
+                ambient.play();
+                menuSound.pause();
+
+                // Show the story box & controls
+                document.getElementById('story-box').style.display = 'block';
+                document.getElementById('controls').style.display = 'block';
+
+                // Hide the story box when button is clicked
+                document.getElementById('story-button').addEventListener('click', function () {
+                    document.getElementById('story-box').style.display = 'none';
+                    document.getElementById('controls').style.display = 'none';
+                });
+                // Show the game container
+                document.getElementById('game-container').style.display = 'block';
+                document.getElementById('timer').style.display = 'block';
+
+                startTime = new Date();
+                timerInterval = setInterval(updateTimer, 1000);
+            }
+        });
+
+        // Initialize the state of the Start Game button
+        updateStartButtonState();
+    </script>
 </body>
+
 </html>
