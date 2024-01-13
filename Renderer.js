@@ -93,6 +93,32 @@ export class Renderer extends BaseRenderer {
         gl.uniform1f(uniforms.uShininess2, lightComponent2.shininess);
         gl.uniform4fv(uniforms.uLightColor2, lightComponent2.color);
 
+        //Repeat light setup for third light - red
+
+
+            const lightComponent3 = lights[2].getComponentOfType(Light);
+            const lightMatrix3 = getGlobalModelMatrix(lights[2]);
+            const lightPosition3 = mat4.getTranslation(vec3.create(), lightMatrix3);
+            gl.uniform3fv(uniforms.uLightPosition3, lightPosition3);
+            gl.uniform1f(uniforms.uLightAmbient3,lightComponent3.ambient);
+            gl.uniform1f(uniforms.uShininess3, lightComponent3.shininess);
+            gl.uniform4fv(uniforms.uLightColor3, lightComponent3.color);
+
+            //Repeat light setup for fourth light - blue
+            const lightComponent4 = lights[3].getComponentOfType(Light);
+            const lightMatrix4 = getGlobalModelMatrix(lights[3]);
+            const lightPosition4 = mat4.getTranslation(vec3.create(), lightMatrix4);
+            gl.uniform3fv(uniforms.uLightPosition4, lightPosition4);
+            gl.uniform1f(uniforms.uLightAmbient4,lightComponent4.ambient);
+            gl.uniform1f(uniforms.uShininess4, lightComponent4.shininess);
+            gl.uniform4fv(uniforms.uLightColor4, lightComponent4.color);
+
+  
+
+
+
+        
+
         // Render each primitive in the model
         const models = getModels(node);
         for (const model of models) {
