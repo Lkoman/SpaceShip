@@ -4,7 +4,7 @@ import { QuadTree, Rectangle } from '../../../QuadTree.js';
 
 
 // Import object arrays from main.js
-import { calculateWorldBoundingBox, traps, keys, quadTree, camera, playerHeight } from '../../../main.js';
+import { calculateWorldBoundingBox, traps, keys, quadTree, camera, playerHeight, doors, scene } from '../../../main.js';
 
 export class FirstPersonController {
 
@@ -90,7 +90,6 @@ export class FirstPersonController {
         // Collision detection
         //
         // Collision detection with walls
-        // Collision detection with walls
         let collisionNormals = [];
         let currentPosition = vec3.clone(transform.translation);
         const numSteps = 5;
@@ -155,6 +154,14 @@ export class FirstPersonController {
         let holdPosition = vec3.create();
         vec3.scale(holdPosition, forward, 0.1);
         for (let key of keys) {
+            // Check if a door needs to be opened
+            for (let door of doors) {
+                if (this.checkCollision(playerBox, door.boundingBoxBig)) {
+                    if (door.open == false && key.order == door.order && this.keys['KeyE'] && key.pickedUp) {
+                        this.openDoor(door, dt);
+                    }
+                }
+            }
             if (this.checkCollision(playerBox, key.boundingBoxBig)) {
                 //console.log("Collision with key detected!");
 
@@ -204,9 +211,52 @@ export class FirstPersonController {
                 break;
             }
         }
-
         // Check if any key is currently picked up
         let isAnyKeyPickedUp = keys.some(key => key.pickedUp);
+
+        // Doors
+        // Collision detection with doors
+        // Check if a door needs to be opened
+        for (let door of doors) {
+            if (door.opening == true) {
+                this.openDoor(door, dt);
+            }
+        }
+        let collisionWithDoor = false;
+        for (let door of doors) {
+            if (this.checkCollision(playerBox, door.boundingBox)) {
+                collisionWithDoor = true;
+        
+                // Calculate door normal based on door orientation
+                let doorNormal = vec3.create(); // Initialize the doorNormal vector
+                if (door.order == 1) {
+                    vec3.set(doorNormal, 1, 0, 0); 
+                } else if (door.order == 2) {
+
+                } else if (door.order == 3) {
+
+                }
+    
+                // Prevent movement in the direction of the door
+                const dotProduct = vec3.dot(this.velocity, doorNormal);
+                if (dotProduct > 0) {
+                    const projection = vec3.scale(vec3.create(), doorNormal, dotProduct);
+                    vec3.subtract(this.velocity, this.velocity, projection);
+                }
+            }
+        }
+
+        // Check if finalPositionSafe is true before moving the player
+        if (finalPositionSafe) {
+            // Calculate the final potential position based on adjusted velocity (after bounce)
+            let finalPotentialPosition = vec3.clone(currentPosition);
+            vec3.scaleAndAdd(finalPotentialPosition, currentPosition, this.velocity, dt);
+
+            // Check if moving towards the door, if so, prevent the movement
+            if (!collisionWithDoor || vec3.distance(finalPotentialPosition, transform.translation) < vec3.distance(currentPosition, transform.translation)) {
+                vec3.copy(transform.translation, finalPotentialPosition);
+            }
+        }
 
         let sprintMultiplier = 1;
         if (this.isShiftPressed && !isAnyKeyPickedUp) {
@@ -304,12 +354,12 @@ export class FirstPersonController {
         return {
             min: {
                 x: position[0] - playerSize.width / 2,  // X-axis
-                z: position[1] - playerSize.height / 2, // Z-axis (Height)
+                z: 0.007, // Z-axis (Height)
                 y: position[2] - playerSize.depth / 2   // Y-axis
             },
             max: {
                 x: position[0] + playerSize.width / 2,  // X-axis
-                z: position[1] + playerSize.height / 2, // Z-axis (Height)
+                z: playerSize.height, // Z-axis (Height)
                 y: position[2] + playerSize.depth / 2   // Y-axis
             }
         };
@@ -318,7 +368,8 @@ export class FirstPersonController {
     checkCollision(playerBox, objectBox) {
         return (
             playerBox.min.x <= objectBox.max.x && playerBox.max.x >= objectBox.min.x && // Check X-axis overlap
-            playerBox.min.y <= objectBox.max.y && playerBox.max.y >= objectBox.min.y // Check Y-axis overlap        
+            playerBox.min.y <= objectBox.max.y && playerBox.max.y >= objectBox.min.y && // Check Y-axis overlap
+            playerBox.min.z <= objectBox.max.z && playerBox.max.z >= objectBox.min.z // Check Z-axis overlap
         );
     }
 
@@ -386,5 +437,25 @@ export class FirstPersonController {
             normal: normal,
             penetrationDepth: penetrationDepth
         };
+    }
+
+    openDoor(door, dt) {
+        // Assuming door has a property 'height' indicating its current height
+        const openHeight = 0.5; // Maximum height to which the door opens
+        if (door.components[0].translation[1] < openHeight) {
+            door.components[0].translation[1] += dt * 0.1; // doorOpeningSpeed is the speed at which the door opens
+            door.opening = true;
+            calculateWorldBoundingBox(door, "door");
+            for (let key of keys) {
+                if (key.order == door.order) {
+                    scene.removeChild(key);
+                    keys.splice(0, keys.length, ...keys.filter(key => key.order != 1));
+                    break;
+                }
+            }
+        } else {
+            door.open = true;
+            door.opening = false;
+        }
     }
 }

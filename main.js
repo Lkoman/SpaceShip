@@ -31,7 +31,7 @@ let victory = 0; // 0 = nothing, -1 = defeat, 1 = victory
 // Load the level model
 const levelLoader = new GLTFLoader();
 await levelLoader.load('common/models/Level.gltf');
-const scene = levelLoader.loadScene(levelLoader.defaultScene);
+export const scene = levelLoader.loadScene(levelLoader.defaultScene);
 const levelNode = scene.find(node => node.getComponentOfType(Model));
 
 // Calculate the QuadTree for the level
@@ -62,6 +62,7 @@ key1Node.addComponent(new Transform({
 	scale : [1,1,1],
 	translation : [0,0,0], // x, z, y
 }));
+key1Node.order = 1;
 
 const key2Loader = new GLTFLoader();
 await key2Loader.load('common/models/Key2.gltf');
@@ -72,22 +73,60 @@ key2Node.addComponent(new Transform({
 	scale : [1,1,1],
 	translation : [0,0,0], // x, z, y
 }));
+key2Node.order = 2;
+
+const key3Loader = new GLTFLoader();
+await key3Loader.load('common/models/Key2.gltf');
+const sceneKey3 = key3Loader.loadScene(key3Loader.defaultScene);
+const key3Node = sceneKey3.find(node => node.getComponentOfType(Model));
+
+key3Node.addComponent(new Transform({
+	scale : [1,1,1],
+	translation : [0,0,0], // x, z, y
+}));
+key3Node.order = 3;
 
 // Set the position of keys
 key1Node.components[0].translation = [1, 0.3, 0]; // x, z, y
-key2Node.components[0].translation = [2, 0.3, 1]; // x, z, y
+key2Node.components[0].translation = [1.5, 0.3, 1]; // x, z, y
+key3Node.components[0].translation = [1.2, 0.3, 0]; // x, z, y
 keys.push(key1Node);
 keys.push(key2Node);
+keys.push(key3Node);
 
 // Calculate the bounding boxes for all keys
 for (let key of keys) {
-	calculateWorldBoundingBox(key);
+	calculateWorldBoundingBox(key, "key");
 	key.pickedUp = false;
 }
 
 // Add the key to the level
 scene.addChild(key1Node);
 scene.addChild(key2Node);
+scene.addChild(key3Node);
+
+// Add door models
+// Add key models
+const door1Loader = new GLTFLoader();
+await door1Loader.load('common/models/Door.gltf');
+const sceneDoor1 = door1Loader.loadScene(door1Loader.defaultScene);
+const door1Node = sceneDoor1.find(node => node.getComponentOfType(Model));
+
+door1Node.addComponent(new Transform({
+	scale : [1,1,1],
+	translation : [0,0,0], // x, z, y
+}));
+door1Node.order = 1;
+doors.push(door1Node);
+
+for (let door of doors) {
+    calculateWorldBoundingBox(door, "door");
+    console.log(door);
+    door.open = false;
+    door.opening = false;
+}
+
+scene.addChild(door1Node);
 
 //
 // LIGHT COMPONENTS
@@ -150,7 +189,7 @@ new ResizeSystem({canvas, resize}).start();
 new UpdateSystem({update, render}).start();
 
 // AABB for objects
-export function calculateWorldBoundingBox(node) {
+export function calculateWorldBoundingBox(node, object) {
     let minX = Infinity, minY = Infinity, minZ = Infinity;
     let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
 
@@ -179,16 +218,28 @@ export function calculateWorldBoundingBox(node) {
         maxZ = Math.max(maxZ, transformedZ);
     }
 
-	// Bounding box that is used with traps/walls (where it must be tight)
-	node.boundingBox = {
-        min: {x: minX, y: minY, z: minZ},
-        max: {x: maxX, y: maxY, z: maxZ}
-    };
+	// Bounding box that is used with traps
+    if (object == "trap") {
+        node.boundingBoxTraps = {
+            min: {x: minX - minX*0.01 , y: minY - minY*0.01, z: minZ - minZ*0.01},
+            max: {x: maxX + maxX*0.01, y: maxY - maxY*0.01, z: maxZ + maxZ*0.01}
+        };
+    }
 
 	// Bounding box that is used with objects that can be picked up (bigger for easier pick up)
-	if (node.rezerva == undefined) {
-		node.rezerva = Math.max((maxX - minX)*3.5, (maxZ - minZ)*3.5, (maxY - minY)*3.5);
-	}
+    if (object == "key") {
+        if (node.rezerva == undefined) {
+            node.rezerva = Math.max((maxX - minX)*3.5, (maxZ - minZ)*3.5, (maxY - minY)*3.5);
+        }
+    } else if (object == "door") {
+        if (node.rezerva == undefined) {
+            node.rezerva = Math.max((maxX - minX)*1.05, (maxZ - minZ)*1.05, (maxY - minY)*1.05);
+        }
+        node.boundingBox = {
+            min: {x: minX - minX*0.05 , y: minY - minY*0.05, z: minZ - minZ*0.05},
+            max: {x: maxX + maxX*0.05, y: maxY - maxY*0.05, z: maxZ + maxZ*0.05}
+        };
+    }
 	node.boundingBoxBig = {
 		min: {x: minX - node.rezerva, z: minZ, y: minY - node.rezerva},
 		max: {x: maxX + node.rezerva, z: maxZ, y: maxY + node.rezerva}
