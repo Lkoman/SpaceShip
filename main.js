@@ -164,8 +164,46 @@ light2.addComponent(new LinearAnimator(light2, {
 
 }));
 
+const light3 = new Node();
+light3.addComponent(new Light({
+	color : [1.0,0,0,1.0],
+	ambient  : 0.0,
+	shininess : 100,
+}));
+
+light3.addComponent(new Transform());
+light3.addComponent(new LinearAnimator(light3, { 
+	startPosition : [-4.0,0.2,0.5],
+	endPosition: [-4.0,0.2,3.5],
+	duration : 2,
+	loop : true,
+
+}));
+
+
+const light4 = new Node();
+light4.addComponent(new Light({
+	color : [0.0,0,1,1.0],
+	ambient  : 0.0,
+	shininess : 100,
+}));
+
+light4.addComponent(new Transform());
+light4.addComponent(new LinearAnimator(light4, { 
+	startPosition : [4.8,0.2,-1],
+	endPosition: [4.8,0.2,-3.5],
+	duration : 2,
+	loop : true,
+
+}));
+
+
+
+
 scene.addChild(light);
 scene.addChild(light2);
+scene.addChild(light3);
+scene.addChild(light4);
 
 function update(time, dt) {
 	scene.traverse(node => {
