@@ -11,7 +11,7 @@ import { Camera, Model, Node, Transform } from './common/engine/core.js';
 
 import { Renderer } from './Renderer.js';
 import { Light } from './Light.js';
-import { Wall } from './Wall.js';
+import { QuadTree, Rectangle } from './QuadTree.js';
 
 // Select canvas and initialize renderer
 const canvas = document.querySelector('canvas');
@@ -23,41 +23,33 @@ await renderer.initialize();
 //
 export let keys = [];
 export let doors = [];
-export let objects = []; // like cubes
-export let walls = [];
+export let traps = [];
+export let playerHeight = 0.3999999761581421;
 
 // Load the level model
 const levelLoader = new GLTFLoader();
-await levelLoader.load('common/models/Level.gltf');
+await levelLoader.load('common/models/Level2.gltf');
 const scene = levelLoader.loadScene(levelLoader.defaultScene);
 const levelNode = scene.find(node => node.getComponentOfType(Model));
-console.log("Level node");
-console.log(levelNode);
+
+// Calculate the QuadTree for the level
+const levelBounds = new Rectangle(-(calculateDimensions(levelNode).w/2), -(calculateDimensions(levelNode).d/2), calculateDimensions(levelNode).w/2, calculateDimensions(levelNode).d/2);
+console.log(levelBounds);
+
+export const quadTree = new QuadTree(levelBounds, 150);
+extractTrianglesFromLevel(levelNode, playerHeight);
+
+quadTree.logNodeDetails();
 
 // Set up the camera
-const camera = scene.find(node => node.getComponentOfType(Camera));
+export const camera = scene.find(node => node.getComponentOfType(Camera));
 camera.addComponent(new FirstPersonController(camera, document.body, { distance : 2}));
-
-// check outputs camera
-const cameraTransform = camera.getComponentOfType(Transform);
-const cameraWorldPosition = [cameraTransform.matrix[12], cameraTransform.matrix[13], cameraTransform.matrix[14]];
-console.log('Camera World Position:', cameraWorldPosition);
-console.log("camera");
-console.log(camera);
 
 const modelNode = scene.find(node => node.getComponentOfType(Model));
 modelNode.addComponent(new Transform({
 	scale : [1,1,1],
 	translation : [0,0,0],
 }));
-
-let wall1 = new Wall( // x, z, y
-	[2.12119, 0.636927, 0.283369], // leftUp
-	[2.12119, -0.014845, 0.283369], // leftDown
-	[2.12119, 0.644094, 2.20138], // rightUp
-	[2.12119, -0.008538, 2.20138] // rightDown
-);
-walls.push(wall1);
 
 // Add key models
 const key1Loader = new GLTFLoader();
@@ -156,6 +148,7 @@ new ResizeSystem({canvas, resize}).start();
 
 new UpdateSystem({update, render}).start();
 
+// AABB for objects
 export function calculateWorldBoundingBox(node) {
     let minX = Infinity, minY = Infinity, minZ = Infinity;
     let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
@@ -172,9 +165,9 @@ export function calculateWorldBoundingBox(node) {
         let x = vertex.position[0], z = vertex.position[1], y = vertex.position[2];
 
         // Apply the world matrix to the vertex position
-        let transformedX = worldMatrix[0] * x + worldMatrix[4] * y + worldMatrix[8] * z + worldMatrix[12];
-        let transformedZ = worldMatrix[1] * x + worldMatrix[5] * y + worldMatrix[9] * z + worldMatrix[13];
-        let transformedY = worldMatrix[2] * x + worldMatrix[6] * y + worldMatrix[10] * z + worldMatrix[14];
+        let transformedX = worldMatrix[0] * x + worldMatrix[4] * z + worldMatrix[8] * y + worldMatrix[12];
+        let transformedZ = worldMatrix[1] * x + worldMatrix[5] * z + worldMatrix[9] * y + worldMatrix[13];
+        let transformedY = worldMatrix[2] * x + worldMatrix[6] * z + worldMatrix[10] * y + worldMatrix[14];
 
         // Update the min and max coordinates
         minX = Math.min(minX, transformedX);
@@ -185,22 +178,180 @@ export function calculateWorldBoundingBox(node) {
         maxZ = Math.max(maxZ, transformedZ);
     }
 
-	if (node.rezerva == undefined) {
-		node.rezerva = Math.max((maxX - minX)*3.5, (maxZ - minZ)*3.5, (maxY - minY)*3.5);
-	}
-
+	// Bounding box that is used with traps/walls (where it must be tight)
 	node.boundingBox = {
         min: {x: minX, y: minY, z: minZ},
         max: {x: maxX, y: maxY, z: maxZ}
     };
 
+	// Bounding box that is used with objects that can be picked up (bigger for easier pick up)
+	if (node.rezerva == undefined) {
+		node.rezerva = Math.max((maxX - minX)*3.5, (maxZ - minZ)*3.5, (maxY - minY)*3.5);
+	}
 	node.boundingBoxBig = {
 		min: {x: minX - node.rezerva, z: minZ, y: minY - node.rezerva},
 		max: {x: maxX + node.rezerva, z: maxZ, y: maxY + node.rezerva}
 	};
 }
 
-// Show "pick up with E" text above pickup-able objects
-export function showPickupText(show) {
-    //document.getElementById('pickup-text').style.display = show ? 'block' : 'none';
+export function calculateDimensions(node) {
+    let minX = Infinity, minY = Infinity, minZ = Infinity;
+    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+
+    // Get the world matrix
+    let worldMatrix = node.components[0].matrix;
+
+    for (let vertex of node.components[1].primitives[0].mesh.vertices) {
+		if (vertex.normal.length === 0 && vertex.tangent.length === 0 && vertex.texcoords.length === 0) {
+			break;
+        }
+
+		// Original vertex position, node.components[0].translation = [x, z, y]
+        let x = vertex.position[0], z = vertex.position[1], y = vertex.position[2];
+
+        // Apply the world matrix to the vertex position
+        let transformedX = worldMatrix[0] * x + worldMatrix[4] * z + worldMatrix[8] * y + worldMatrix[12];
+        let transformedZ = worldMatrix[1] * x + worldMatrix[5] * z + worldMatrix[9] * y + worldMatrix[13];
+        let transformedY = worldMatrix[2] * x + worldMatrix[6] * z + worldMatrix[10] * y + worldMatrix[14];
+
+        // Update the min and max coordinates
+        minX = Math.min(minX, transformedX);
+        minY = Math.min(minY, transformedY);
+        minZ = Math.min(minZ, transformedZ);
+        maxX = Math.max(maxX, transformedX);
+        maxY = Math.max(maxY, transformedY);
+        maxZ = Math.max(maxZ, transformedZ);
+    }
+
+	return {
+		w: (maxX - minX),
+		h: (maxZ - minZ),
+		d: (maxY - minY)
+	};
 }
+
+function extractTrianglesFromLevel(levelNode, playerHeight) {
+    let mesh = levelNode.components[1].primitives[0].mesh;
+    let lineVertex1, lineVertex2;
+    const triangles = [];
+    for (let i = 0; i < mesh.indices.length; i += 3) {
+        if (getVertexByIndex(mesh, mesh.indices[i]) === false) {
+            return triangles;
+        }
+        let vertex1 = getVertexByIndex(mesh, mesh.indices[i]);
+        let vertex2 = getVertexByIndex(mesh, mesh.indices[i + 1]);
+        let vertex3 = getVertexByIndex(mesh, mesh.indices[i + 2]);
+
+        // Get the min and max Z values of the triangle
+        let minZ = Math.min(vertex1.z, vertex2.z, vertex3.z);
+        let maxZ = Math.max(vertex1.z, vertex2.z, vertex3.z);
+
+        // Check if any part of the triangle is within the player's height range
+        if ((minZ < 0.0061957621946930885 && maxZ > 0.0061957621946930885) || 
+            (minZ < playerHeight && maxZ > playerHeight) ||
+            (minZ > 0.0061957621946930885 && maxZ <= playerHeight)) {
+            [lineVertex1, lineVertex2] = calculateInterpolation(vertex1, vertex2, vertex3, minZ, maxZ, playerHeight);
+            triangles.push([vertex1, vertex2, vertex3, lineVertex1, lineVertex2, minZ]);
+            quadTree.insert([vertex1, vertex2, vertex3, lineVertex1, lineVertex2, minZ]);
+        }
+    }
+    console.log("Triangles");
+    console.log(triangles);
+    //return triangles;
+}
+
+function getVertexByIndex(mesh, index) {
+	if (mesh.vertices[index].normal.length == 0 && mesh.vertices[index].tangent.length == 0 && mesh.vertices[index].texcoords.length == 0) {
+		return false;
+	}
+    return {
+        x: mesh.vertices[index].position[0],
+        z: mesh.vertices[index].position[1],
+        y: mesh.vertices[index].position[2]
+	};
+}
+
+// Calculate line for collision with interpolation
+function calculateInterpolation(vertex1, vertex2, vertex3, minZ, maxZ, playerHeight) {
+    let lineVertex1, lineVertex2;
+    let alone, sameSide1, sameSide2; // vertexi, razdeljeni na dve skupini (odvisno od heighta playerja)
+    let dX1, dY1, dZ1, dX2, dY2, dZ2, dZplayer1, dZplayer2;
+    let groupZgoraj = [], groupSpodaj = [];
+
+    // Check the position of the triangle
+    // Rabimo izračunat vertexa ki sta na isti strani heighta playerja in vertex, ki je na drugi strani heighta playerja
+    if (vertex1.z > playerHeight) {
+        groupZgoraj.push(vertex1);
+    } else groupSpodaj.push(vertex1);
+
+    if (vertex2.z > playerHeight) {
+        groupZgoraj.push(vertex2);
+    } else groupSpodaj.push(vertex2);
+
+    if (vertex3.z > playerHeight) {
+        groupZgoraj.push(vertex3);
+    } else groupSpodaj.push(vertex3);
+
+    if (groupZgoraj.length == 1) { // zgoraj je sam en vertex, spodaj dva (nad/pod playerHeight)
+        alone = groupZgoraj[0];
+        sameSide1 = groupSpodaj[0];
+        sameSide2 = groupSpodaj[1];
+
+        dX1 = alone.x - sameSide1.x;
+        dY1 = alone.y - sameSide1.y;
+        dZ1 = alone.z - sameSide1.z;
+
+        dX2 = alone.x - sameSide2.x;
+        dY2 = alone.y - sameSide2.y;
+        dZ2 = alone.z - sameSide2.z;
+
+        dZplayer1 = playerHeight - sameSide1.z;
+        dZplayer2 = playerHeight - sameSide2.z;
+
+        lineVertex1 = {x: sameSide1.x + dX1 * dZplayer1 / dZ1, y: sameSide1.y + dY1 * dZplayer1 / dZ1, z: playerHeight};
+        lineVertex2 = {x: sameSide2.x + dX2 * dZplayer2 / dZ2, y: sameSide2.y + dY2 * dZplayer2 / dZ2, z: playerHeight};
+    }
+    else { // zgoraj sta dva vertexa, spodaj en (nad/pod playerHeight)
+        alone = groupSpodaj[0];
+        sameSide1 = groupZgoraj[0];
+        sameSide2 = groupZgoraj[1];
+
+        dX1 = sameSide1.x - alone.x;
+        dY1 = sameSide1.y - alone.y;
+        dZ1 = sameSide1.z - alone.z;
+
+        dX2 = sameSide2.x - alone.x;
+        dY2 = sameSide2.y - alone.y;
+        dZ2 = sameSide2.z - alone.z;
+
+        dZplayer1 = sameSide1.z - playerHeight;
+        dZplayer2 = sameSide2.z - playerHeight;
+
+        lineVertex1 = {x: alone.x + dX1 * dZplayer1 / dZ1, y: alone.y + dY1 * dZplayer1 / dZ1, z: playerHeight};
+        lineVertex2 = {x: alone.x + dX2 * dZplayer2 / dZ2, y: alone.y + dY2 * dZplayer2 / dZ2, z: playerHeight};
+    }
+
+    return [lineVertex1, lineVertex2];
+}
+
+/*function calculateAABB(triangle) {
+    let minX = Math.min(triangle[0].x, triangle[1].x, triangle[2].x);
+    let minY = Math.min(triangle[0].y, triangle[1].y, triangle[2].y);
+    let maxX = Math.max(triangle[0].x, triangle[1].x, triangle[2].x);
+    let maxY = Math.max(triangle[0].y, triangle[1].y, triangle[2].y);
+
+    // The depth here is actually the extent of the triangle along the y-axis.
+    let depth = maxY - minY;
+    let width = maxX - minX;
+    if (depth === 0) {
+        depth = 0.05;
+    }
+    if (width == 0) {
+        width = 0.05;
+    }
+
+	let aabb = new Rectangle(minX, minY, width, depth);
+
+    // Using the updated Rectangle class with the 'depth' property.
+    return aabb;
+}*/

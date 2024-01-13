@@ -1,9 +1,10 @@
 import { quat, vec3, mat4 } from '../../../lib/gl-matrix-module.js';
 import { Transform } from '../core/Transform.js';
-import { Wall } from '../../../Wall.js';
+import { QuadTree, Rectangle } from '../../../QuadTree.js';
+
 
 // Import object arrays from main.js
-import { showPickupText, calculateWorldBoundingBox, walls, keys } from '../../../main.js';
+import { calculateWorldBoundingBox, traps, keys, quadTree, camera, playerHeight } from '../../../main.js';
 
 export class FirstPersonController {
 
@@ -11,10 +12,10 @@ export class FirstPersonController {
         pitch = 0,
         yaw = 0,
         velocity = [0, 0, 0],
-        acceleration = 20,
-        maxSpeed = 1,
+        acceleration = 4,
+        maxSpeed = 0.5,
         decay = 0.99999,
-        pointerSensitivity = 0.002,
+        pointerSensitivity = 0.001,
     } = {}) {
         this.node = node;
         this.domElement = domElement;
@@ -88,37 +89,90 @@ export class FirstPersonController {
         //
         // Collision detection
         //
-        let nextPosition = this.calculateNextPosition(dt);
-        let playerBox = this.calculateBoundingBoxPlayer(nextPosition);
+        // Collision detection with walls
+        let collisionNormals = [];
+        let currentPosition = vec3.clone(transform.translation);
+        const numSteps = 5;
+        const collisionTolerance = 0.05;
+        let finalPositionSafe = true;
+        let totalPenetrationDepth = 0; // Aggregate penetration depth
+
+        // Step through time to predict collisions
+        for (let step = 0; step < numSteps; step++) {
+            let stepFraction = (step + 1) / numSteps;
+            let nextPosition = this.calculateNextPosition(dt * stepFraction);
+
+            const playerNode = quadTree.findLeafNode({ x: nextPosition[0], y: nextPosition[2] });
+            if (playerNode) {
+                for (let object of playerNode.objects) {
+                    let collisionInfo = this.checkCollisionLevel(nextPosition[0], nextPosition[2], object);
+                    if (collisionInfo.collision) {
+                        // Collect normals for all collisions
+                        let invertedNormal = vec3.scale(vec3.create(), collisionInfo.normal, -1);
+                        collisionNormals.push(invertedNormal);
+
+                        // Aggregate penetration depths
+                        totalPenetrationDepth += collisionInfo.penetrationDepth;
+                    }
+                }
+            }
+        }
+
+        // Check if the total penetration depth is within the tolerance
+        if (totalPenetrationDepth > collisionTolerance) {
+            finalPositionSafe = false;
+        }
+
+        // Calculate average normal to determine variance
+        let averageNormal = vec3.create();
+        for (let normal of collisionNormals) {
+            vec3.add(averageNormal, averageNormal, normal);
+        }
+        vec3.scale(averageNormal, averageNormal, 1 / collisionNormals.length);
+
+        // Determine variance
+        let variance = 0;
+        for (let normal of collisionNormals) {
+            let diff = vec3.subtract(vec3.create(), normal, averageNormal);
+            variance += vec3.length(diff);
+        }
+        variance /= collisionNormals.length;
+        console.log("Collision Normals Variance: ", variance);
+
+        const varianceThreshold = 0.01;
+
+        // Adjust velocity based on normals and variance
+        if (collisionNormals.length > 0 && finalPositionSafe) {
+            for (let normal of collisionNormals) {
+                // If variance is above the threshold, invert the normal; otherwise, use it as is
+                let adjustedNormal = variance > varianceThreshold ? vec3.scale(vec3.create(), normal, -1) : vec3.clone(normal);
+        
+                const dotProduct = vec3.dot(this.velocity, adjustedNormal);
+                if (dotProduct < 0) {
+                    const projection = vec3.scale(vec3.create(), adjustedNormal, dotProduct);
+                    vec3.subtract(this.velocity, this.velocity, projection);
+                }
+            }
+        }
+
+        // Calculate the final potential position based on adjusted velocity
+        let finalPotentialPosition = vec3.clone(currentPosition);
+        vec3.scaleAndAdd(finalPotentialPosition, currentPosition, this.velocity, dt);
+
+        // Update the player's position only if it's safe
+        if (finalPositionSafe) {
+            vec3.copy(transform.translation, finalPotentialPosition);
+        }
 
         // Collision detection with objects
-        // Walls
-        /*for (let wall of walls) {
-            let wallBox = // get the bounding box for the wall
-            if (this.checkCollision(playerBox, wallBox)) {
-                console.log("Collision with wall detected!");
-                // Determine collision side and adjust movement
-                if (nextPosition[0] < wallBox.min[0]) {
-                    this.velocity[0] = Math.min(0, this.velocity[0]);// Collision on the player's right side
-                } else if (nextPosition[0] > wallBox.max[0]) {
-                    this.velocity[0] = Math.max(0, this.velocity[0]);// Collision on the player's left side
-                }
-                if (nextPosition[2] < wallBox.min[2]) {
-                    this.velocity[2] = Math.min(0, this.velocity[2]);// Collision in front of the player
-                } else if (nextPosition[2] > wallBox.max[2]) {
-                    this.velocity[2] = Math.max(0, this.velocity[2]);// Collision behind the player
-                }
-                break; // Stop checking after first collision
-            }
-        }*/
-
         // Keys
+        let nextPositionStep = this.calculateNextPosition(dt);
+        let playerBox = this.calculateBoundingBoxPlayer(nextPositionStep);
         let holdPosition = vec3.create();
         vec3.scale(holdPosition, forward, 0.1);
         for (let key of keys) {
             if (this.checkCollision(playerBox, key.boundingBoxBig)) {
-                console.log("Collision with key detected!");
-                showPickupText(true);
+                //console.log("Collision with key detected!");
 
                 if (this.eKeyJustPressed) {
                     this.eKeyJustPressed = false;
@@ -134,15 +188,13 @@ export class FirstPersonController {
                         // KED DROPPED
                         key.pickedUp = false;
 
-                        key.components[0].translation[0] = nextPosition[0] + holdPosition[0];
-                        key.components[0].translation[2] = nextPosition[2] + holdPosition[2];
+                        key.components[0].translation[0] = nextPositionStep[0] + holdPosition[0];
+                        key.components[0].translation[2] = nextPositionStep[2] + holdPosition[2];
                         // Update bounding box to the new dropped position
                         calculateWorldBoundingBox(key);
                     }                
                 }
                 break;
-            } else {
-                showPickupText(false);
             }
         }
 
@@ -153,8 +205,8 @@ export class FirstPersonController {
                 let currentHoldPosition = vec3.create();
                 vec3.scale(currentHoldPosition, forward, 0.12);
 
-                key.components[0].translation[0] = nextPosition[0] + currentHoldPosition[0];
-                key.components[0].translation[2] = nextPosition[2] + currentHoldPosition[2];
+                key.components[0].translation[0] = nextPositionStep[0] + currentHoldPosition[0];
+                key.components[0].translation[2] = nextPositionStep[2] + currentHoldPosition[2];
 
                 // Update the key's rotation
                 const keyRotation = quat.create();
@@ -197,7 +249,7 @@ export class FirstPersonController {
             vec3.scale(this.velocity, this.velocity, (this.maxSpeed / speed) * sprintMultiplier);
         }
 
-        if (transform) {
+        if (transform && finalPositionSafe) {
             // Update translation based on velocity.
             vec3.scaleAndAdd(transform.translation,
                 transform.translation, this.velocity, dt);
@@ -261,7 +313,7 @@ export class FirstPersonController {
 
     calculateBoundingBoxPlayer(position) {
         // Define the player size
-        const playerSize = { width: 0.2, height: 0.399, depth: 0.2};
+        const playerSize = { width: 0.15, height: 0.399, depth: 0.15};
     
         return {
             min: {
@@ -282,5 +334,65 @@ export class FirstPersonController {
             playerBox.min.x <= objectBox.max.x && playerBox.max.x >= objectBox.min.x && // Check X-axis overlap
             playerBox.min.y <= objectBox.max.y && playerBox.max.y >= objectBox.min.y // Check Y-axis overlap        
         );
+    }
+
+    checkCollisionLevel(playerX, playerY, object) {
+        // Line segment points
+        const x1 = object[3].x;
+        const y1 = object[3].y;
+        const x2 = object[4].x;
+        const y2 = object[4].y;
+    
+        // Buffer area for walls
+        const buffer = 0.15;
+
+        // Calculate the line segment vector
+        const lineVec = vec3.fromValues(x2 - x1, 0, y2 - y1);
+        vec3.normalize(lineVec, lineVec); // Normalize the line segment vector
+
+        // Calculate the normal of the line segment (wall)
+        const normal = vec3.fromValues(-lineVec[2], 0, lineVec[0]); // Rotate 90 degrees to get the normal
+        
+        // Function to calculate distance from point to line segment
+        const distancePointLineSegment = (px, py, x1, y1, x2, y2) => {
+            const A = px - x1;
+            const B = py - y1;
+            const C = x2 - x1;
+            const D = y2 - y1;
+    
+            const dot = A * C + B * D;
+            const len_sq = C * C + D * D;
+            const param = len_sq !== 0 ? dot / len_sq : -1;
+    
+            let xx, yy;
+    
+            if (param < 0) {
+                xx = x1;
+                yy = y1;
+            } else if (param > 1) {
+                xx = x2;
+                yy = y2;
+            } else {
+                xx = x1 + param * C;
+                yy = y1 + param * D;
+            }
+    
+            const dx = px - xx;
+            const dy = py - yy;
+            return Math.sqrt(dx * dx + dy * dy);
+        };
+    
+        // Calculate distance from player to line segment
+        const dist = distancePointLineSegment(playerX, playerY, x1, y1, x2, y2);
+
+        // Determine if there is a collision and calculate penetration depth
+        let isCollision = dist <= buffer;
+        let penetrationDepth = isCollision ? buffer - dist : 0;
+
+        return {
+            collision: isCollision,
+            normal: normal,
+            penetrationDepth: penetrationDepth
+        };
     }
 }
