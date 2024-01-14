@@ -23,9 +23,9 @@
             <p><input type="text" id="playerName" placeholder="uporabniško ime" required></p>
             <p><button id="start-button">ZAČNI IGRO</button></p>
             <p id="help-info"><i>Pritisnite Esc ali ALt za prikaz miške</i></p>
+            <p id="zvok-text">ZVOK</p>
             <label class="switch" id="switch">
-                <input type="checkbox" id="soundSwitch" checked>
-                <span class="slider"></span>
+                <input type="checkbox" id="soundSwitch" name='soundSwitch' checked>
             </label>
         </div>
     </div>
@@ -89,10 +89,6 @@
                 <td><img src="Assets/Img/E_key.png" id="control-img" style="scale: 70%;"></td>
                 <td>interakcija</td>
             </tr>
-            <tr>
-                <td><img src="Assets/Img/Ctrl_key.png" id="control-img" style="scale: 70%;"></td>
-                <td>počepni</td>
-            </tr>
         </table>
     </div>
 
@@ -119,14 +115,20 @@
 
     <div id="timer" style="display: none;">00:00</div>
 
+    <div id="helth" style="display: none;">
+        <img src="Assets/Img/heart.png" id="helth3">
+        <img src="Assets/Img/heart.png" id="helth2">
+        <img src="Assets/Img/heart.png" id="helth1">
+    </div>
+
     <div id="defeat-screen-spikes" style="display: none;">
-        <p id="KONECspikes"><b>NABODEN!</b></p>
-        <p><a href="index.html">POSKUSI ŠE ENKRAT</a></p>
+        <p id="KONECspikes"><b>NABODEN</b></p>
+        <p><a href="index.html">NOVA IGRA</a></p>
     </div>
 
     <div id="defeat-screen-slime" style="display: none;">
-        <p id="KONECslime"><b>BIL SI RAZTOPLJEN:(</b></p>
-        <p><a href="index.html">POSKUSI ŠE ENKRAT</a></p>
+        <p id="KONECslime"><b>RAZTOPLJEN</b></p>
+        <p><a href="index.html">NOVA IGRA</a></p>
     </div>
 
     <div id="victory-screen" style="display: none;">
@@ -201,6 +203,8 @@
                 document.getElementById('story-box').style.display = 'block';
                 document.getElementById('controls').style.display = 'block';
 
+                document.getElementById('helth').style.display = 'block';
+
                 document.getElementById('story-button').addEventListener('click', function () {
                     document.getElementById('story-box').style.display = 'none';
                     document.getElementById('controls').style.display = 'none';
@@ -228,7 +232,16 @@
                 victorySound.play()
             }
 
+            if (victory == -1) {
+                document.getElementById('helth3').style.display = 'none';
+            }
+
+            if (victory == -2) {
+                document.getElementById('helth2').style.display = 'none';
+            }
+
             if (victory <= -3 && !deathSoundPlayed) {
+                document.getElementById('helth1').style.display = 'none';
                 if (diedBy == "spikes") {
                     document.getElementById('defeat-screen-spikes').style.display = 'block';
                 } else if (diedBy == "slime") {
