@@ -55,6 +55,11 @@
         Your browser does not support the audio tag.
     </audio>
 
+    <audio id="door-opening">
+        <source src="Assets/Audio/Door.mp3" type="audio/mpeg">
+        Your browser does not support the audio tag.
+    </audio>
+
     <div id="controls">
         <table style="width:100%">
             <tr>
@@ -197,8 +202,8 @@
             }
 
             if (doorOpeningSound == true) {
-                document.getElementById('door-opening-sound').play();
-            }
+                document.getElementById('door-opening').play();
+            } else document.getElementById('door-opening').pause();
         });
 
         updateStartButtonState();
