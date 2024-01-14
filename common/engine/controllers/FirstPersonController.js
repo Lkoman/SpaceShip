@@ -93,7 +93,7 @@ export class FirstPersonController {
         // Collision detection with walls
         let collisionNormals = [];
         let currentPosition = vec3.clone(transform.translation);
-        //console.log(currentPosition[0] + ", " + currentPosition[2]);
+        console.log(currentPosition[0] + ", " + currentPosition[2]);
         const numSteps = 5;
         const collisionTolerance = 0.05;
         let finalPositionSafe = true;
@@ -228,7 +228,7 @@ export class FirstPersonController {
         for (let door of doors) {
             if (this.checkCollision(playerBox, door.boundingBox)) {
                 collisionWithDoor = true;
-                console.log("Collision with door detected!" )
+                //console.log("Collision with door detected!" )
         
                 // Calculate door normal based on door orientation
                 let doorNormal = vec3.create(); // Initialize the doorNormal vector
@@ -464,6 +464,9 @@ export class FirstPersonController {
     openDoor(door, dt) {
         // Assuming door has a property 'height' indicating its current height
         const openHeight = 0.5; // Maximum height to which the door opens
+        if (victory <= -3) {
+            return 0;
+        }
         if (door.components[0].translation[1] < openHeight) {
             door.components[0].translation[1] += dt * 0.2; // doorOpeningSpeed is the speed at which the door opens
             door.opening = true;
@@ -486,18 +489,35 @@ export class FirstPersonController {
     }
 
     trapMove(trap, dt) {
-        if (trap.direction == false) {
-            trap.components[2].translation[trap.axis] -= dt * trap.speed1;
-            calculateWorldBoundingBox(trap, "trap");
-            if (trap.components[2].translation[trap.axis] <= trap.positionFrom) {
-                trap.direction = true;
+        if (trap.obratno) {
+            if (trap.direction == false) {
+                trap.components[2].translation[trap.axis] += dt * trap.speed2;
+                calculateWorldBoundingBox(trap, "trap");
+                if (trap.components[2].translation[trap.axis] >= trap.positionFrom) {
+                    trap.direction = true;
+                }
             }
-        }
-        if (trap.direction == true) {
-            trap.components[2].translation[trap.axis] += dt * trap.speed2;
-            calculateWorldBoundingBox(trap, "trap");
-            if (trap.components[2].translation[trap.axis] >= trap.positionTo) {
-                trap.direction = false;
+            if (trap.direction == true) {
+                trap.components[2].translation[trap.axis] -= dt * trap.speed1;
+                calculateWorldBoundingBox(trap, "trap");
+                if (trap.components[2].translation[trap.axis] <= trap.positionTo) {
+                    trap.direction = false;
+                }
+            }
+        } else {
+            if (trap.direction == false) {
+                trap.components[2].translation[trap.axis] -= dt * trap.speed1;
+                calculateWorldBoundingBox(trap, "trap");
+                if (trap.components[2].translation[trap.axis] <= trap.positionFrom) {
+                    trap.direction = true;
+                }
+            }
+            if (trap.direction == true) {
+                trap.components[2].translation[trap.axis] += dt * trap.speed2;
+                calculateWorldBoundingBox(trap, "trap");
+                if (trap.components[2].translation[trap.axis] >= trap.positionTo) {
+                    trap.direction = false;
+                }
             }
         }
         //console.log("trap");

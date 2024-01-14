@@ -189,7 +189,7 @@
                 victorySound.play()
             }
 
-            if (victory == -3) {
+            if (victory <= -3) {
                 document.getElementById('defeat-screen').style.display = 'block';
                 ambient.pause();
                 clearInterval(timerInterval);

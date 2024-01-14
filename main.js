@@ -173,13 +173,12 @@ door3Node.components[0].translation = [0.0230344068 + 1.507, 0.399999976 - 0.399
 door3Node.components[0].rotation = [0,0,0,0.999506533];
 door3Node.zamik = 0;
 
-let transform3d = door3Node.components[0]; // Get the transform component
+// 90 degrees around the z-axis
+let transform3d = door3Node.components[0];
 let rotationQuaternion3d = quat.create();
-const zAxis3d = [0, 1, 0]; // Z-axis for rotation
-const angleInRadians3d = Math.PI / 2; // 90 degrees in radians
-// Create a quaternion for a 90-degree rotation around the Z-axis
+const zAxis3d = [0, 1, 0];
+const angleInRadians3d = Math.PI / 2;
 quat.setAxisAngle(rotationQuaternion3d, zAxis3d, angleInRadians3d);
-// Apply this quaternion to the trap's rotation
 transform3d.rotation = rotationQuaternion3d;
 
 doors.push(door1Node);
@@ -198,6 +197,8 @@ scene.addChild(door3Node);
 
 // Add trap models
 // Spikes
+// Main area spikes (trap1, trap2, trap3, trap4)
+// Vrata desno (trap1, trap2)
 const trap1Loader = new GLTFLoader();
 await trap1Loader.load('common/models/Spikes.gltf');
 const sceneTrap1 = trap1Loader.loadScene(trap1Loader.defaultScene);
@@ -207,19 +208,19 @@ trap1Node.addComponent(new Transform({
     scale : [1,1,1],
     translation : [2, 0, -1.52], // x, z, y
 }));
+traps.push(trap1Node);
 trap1Node.speed1 = 1;
 trap1Node.speed2 = 0.24;
 trap1Node.positionFrom = 1.93;
 trap1Node.positionTo = 2.5;
 trap1Node.axis = 0;
 
-let transform = trap1Node.components[2]; // Get the transform component
+// 90 degrees around the z-axis
+let transform = trap1Node.components[2];
 let rotationQuaternion = quat.create();
-const zAxis = [0, 1, 0]; // Z-axis for rotation
-const angleInRadians = Math.PI / 2; // 90 degrees in radians
-// Create a quaternion for a 90-degree rotation around the Z-axis
+const zAxis = [0, 1, 0];
+const angleInRadians = Math.PI / 2;
 quat.setAxisAngle(rotationQuaternion, zAxis, angleInRadians);
-// Apply this quaternion to the trap's rotation
 transform.rotation = rotationQuaternion;
 
 const trap2Loader = new GLTFLoader();
@@ -231,21 +232,17 @@ trap2Node.addComponent(new Transform({
     scale : [1,1,1],
     translation : [2, 0, -0.95], // x, z, y
 }));
+traps.push(trap2Node);
 trap2Node.speed1 = 1.5;
 trap2Node.speed2 = 0.12;
 trap2Node.positionFrom = 1.93;
 trap2Node.positionTo = 2.5;
 trap2Node.axis = 0;
 
-let transformt2 = trap2Node.components[2]; // Get the transform component
-let rotationQuaterniont2 = quat.create();
-const zAxist2 = [0, 1, 0]; // Z-axis for rotation
-const angleInRadianst2 = Math.PI / 2; // 90 degrees in radians
-// Create a quaternion for a 90-degree rotation around the Z-axis
-quat.setAxisAngle(rotationQuaterniont2, zAxist2, angleInRadianst2);
-// Apply this quaternion to the trap's rotation
-transformt2.rotation = rotationQuaterniont2;
+let transformt2 = trap2Node.components[2];
+transformt2.rotation = rotationQuaternion;
 
+// Main area (trap3, trap4)
 const trap3Loader = new GLTFLoader();
 await trap3Loader.load('common/models/Spikes.gltf');
 const sceneTrap3 = trap3Loader.loadScene(trap3Loader.defaultScene);
@@ -253,12 +250,13 @@ const trap3Node = sceneTrap3.find(node => node.getComponentOfType(Model));
 
 trap3Node.addComponent(new Transform({
     scale : [1,1,2],
-    translation : [0, 0, 1.5], // x, z, y
+    translation : [0, 0, 2], // x, z, y
 }));
+traps.push(trap3Node);
 trap3Node.speed1 = 1.1;
 trap3Node.speed2 = 0.25;
-trap3Node.positionFrom = 0.8;
-trap3Node.positionTo = 1.8;
+trap3Node.positionFrom = 1.2;
+trap3Node.positionTo = 2;
 trap3Node.axis = 2;
 
 const trap4Loader = new GLTFLoader();
@@ -268,31 +266,132 @@ const trap4Node = sceneTrap4.find(node => node.getComponentOfType(Model));
 
 trap4Node.addComponent(new Transform({
     scale : [1,1,2],
-    translation : [0.4, 0, 1.5], // x, z, y
+    translation : [0.4, 0, 2], // x, z, y
 }));
+traps.push(trap4Node);
 trap4Node.speed1 = 1;
 trap4Node.speed2 = 0.3;
-trap4Node.positionFrom = 0.8;
-trap4Node.positionTo = 1.8;
+trap4Node.positionFrom = 1.2;
+trap4Node.positionTo = 2;
 trap4Node.axis = 2;
 
-traps.push(trap1Node);
-traps.push(trap2Node);
-traps.push(trap3Node);
-traps.push(trap4Node);
+// Level 1 spikes (trap5, trap6, trap7, trap8)
+// Hallway 1 (trap5, trap6)
+const trap5Loader = new GLTFLoader();
+await trap5Loader.load('common/models/Spikes.gltf');
+const sceneTrap5 = trap5Loader.loadScene(trap5Loader.defaultScene);
+const trap5Node = sceneTrap5.find(node => node.getComponentOfType(Model));
+
+trap5Node.addComponent(new Transform({
+    scale : [1,1,1],
+    translation : [2.75, 0, -1.1], // x, z, y
+}));
+traps.push(trap5Node);
+trap5Node.speed1 = 0.3;
+trap5Node.speed2 = 1;
+trap5Node.positionFrom = -0.8;
+trap5Node.positionTo = 0.2;
+trap5Node.axis = 1;
+
+// 90 degrees around the x-axis && 90 degrees around the z-axis
+let transformt5 = trap5Node.components[2];
+let rotationQuaterniont5 = quat.create();
+const xAxist5 = [1, 0, 0];
+const angleInRadiansXt5 = Math.PI / 2;
+quat.setAxisAngle(rotationQuaterniont5, xAxist5, angleInRadiansXt5);
+const zAxist5 = [0, 0, 1];
+const angleInRadiansZt5 = Math.PI / 2;
+let zRotationQuaterniont5 = quat.create();
+quat.setAxisAngle(zRotationQuaterniont5, zAxist5, angleInRadiansZt5);
+quat.multiply(rotationQuaterniont5, rotationQuaterniont5, zRotationQuaterniont5);
+transformt5.rotation = rotationQuaterniont5;
+
+const trap6Loader = new GLTFLoader();
+await trap6Loader.load('common/models/Spikes.gltf');
+const sceneTrap6 = trap6Loader.loadScene(trap6Loader.defaultScene);
+const trap6Node = sceneTrap6.find(node => node.getComponentOfType(Model));
+
+trap6Node.addComponent(new Transform({
+    scale : [1,1,1],
+    translation : [3.64, -0.8, -1.1], // x, z, y
+}));
+traps.push(trap6Node);
+trap6Node.speed1 = 0.3;
+trap6Node.speed2 = 1;
+trap6Node.positionFrom = -0.8;
+trap6Node.positionTo = 0.2;
+trap6Node.axis = 1;
+
+// 90 degrees around the x-axis && 90 degrees around the z-axis
+let transformt6 = trap6Node.components[2];
+transformt6.rotation = rotationQuaterniont5;
+
+// End of hallway (trap7, trap8)
+const trap7Loader = new GLTFLoader();
+await trap7Loader.load('common/models/Spikes.gltf');
+const sceneTrap7 = trap7Loader.loadScene(trap7Loader.defaultScene);
+const trap7Node = sceneTrap7.find(node => node.getComponentOfType(Model));
+
+trap7Node.addComponent(new Transform({
+    scale: [1, 1, 1],
+    translation: [4.888, 0.1, -2.76], // x, z, y // 4.888, 0.4, -2.76
+}));
+traps.push(trap7Node);
+trap7Node.speed1 = 0.3;
+trap7Node.speed2 = 1;
+//trap7Node.positionFrom = -0.45;
+//trap7Node.positionTo = 0.1;
+trap7Node.positionFrom = 0.1;
+trap7Node.positionTo = -0.75;
+trap7Node.axis = 1;
+
+// 90 degrees around the x-axis
+let transformt7 = trap7Node.components[2]
+transformt7.rotation = rotationQuaterniont5;
+
+const trap8Loader = new GLTFLoader();
+await trap8Loader.load('common/models/Spikes.gltf');
+const sceneTrap8 = trap8Loader.loadScene(trap8Loader.defaultScene);
+const trap8Node = sceneTrap8.find(node => node.getComponentOfType(Model));
+
+trap8Node.addComponent(new Transform({
+    scale: [1, 1, 1],
+    translation: [4.888, 0.5, -2.76], // x, z, y // 4.888, 0.2, -2.76
+}));
+traps.push(trap8Node);
+trap8Node.speed1 = 1;
+trap8Node.speed2 = 0.3;
+trap8Node.positionFrom = 0.5;
+trap8Node.positionTo = 1.35;
+//trap8Node.positionFrom = 0.2;
+//trap8Node.positionTo = 0.95;
+trap8Node.axis = 1;
+
+// 90 degrees around the x-axis
+let transformt8 = trap8Node.components[2];
+transformt8.rotation = rotationQuaterniont5;
+
+console.log(trap7Node);
+console.log(trap8Node);
 
 for (let trap of traps) {
-    //calculateWorldBoundingBox(trap, "trap");
     trap.direction = true;
+    trap.obratno = false;
     trap.type = "spikes";
 }
+trap7Node.obratno = true;
 
 scene.addChild(trap1Node);
 scene.addChild(trap2Node);
 scene.addChild(trap3Node);
 scene.addChild(trap4Node);
+scene.addChild(trap5Node);
+scene.addChild(trap6Node);
+scene.addChild(trap7Node);
+scene.addChild(trap8Node);
 
 // Slime
+// Main area slimes (slime1)
 const slime1Loader = new GLTFLoader();
 await slime1Loader.load('common/models/Slime.gltf');
 const sceneSlime1 = slime1Loader.loadScene(slime1Loader.defaultScene);
@@ -305,7 +404,81 @@ slime1Node.addComponent(new Transform({
 traps.push(slime1Node);
 slime1Node.type = "slime";
 
-console.log(slime1Node);
+const slime5Loader = new GLTFLoader();
+await slime5Loader.load('common/models/Slime.gltf');
+const sceneSlime5 = slime5Loader.loadScene(slime5Loader.defaultScene);
+const slime5Node = sceneSlime5.find(node => node.getComponentOfType(Model));
+
+slime5Node.addComponent(new Transform({
+    scale : [2,2,2],
+    translation : [-1.007, 0, -2.175], // x, z, y
+}));
+traps.push(slime5Node);
+slime5Node.type = "slime";
+
+// Level 1 slimes (slime2, slime3, slime4)
+const slime2Loader = new GLTFLoader();
+await slime2Loader.load('common/models/Slime.gltf');
+const sceneSlime2 = slime2Loader.loadScene(slime2Loader.defaultScene);
+const slime2Node = sceneSlime2.find(node => node.getComponentOfType(Model));
+
+slime2Node.addComponent(new Transform({
+    scale : [0.7,0.7,0.7],
+    translation : [2.5, 0, -1.38], // x, z, y
+}));
+traps.push(slime2Node);
+slime2Node.type = "slime";
+
+const slime3Loader = new GLTFLoader();
+await slime3Loader.load('common/models/Slime.gltf');
+const sceneSlime3 = slime3Loader.loadScene(slime3Loader.defaultScene);
+const slime3Node = sceneSlime3.find(node => node.getComponentOfType(Model));
+
+slime3Node.addComponent(new Transform({
+    scale : [0.7,0.7,0.7],
+    translation : [2.9, 0, -1.5], // x, z, y
+    rotation : [0, 1, 0, 0],
+}));
+traps.push(slime3Node);
+slime3Node.type = "slime";
+
+const slime4Loader = new GLTFLoader();
+await slime4Loader.load('common/models/Slime.gltf');
+const sceneSlime4 = slime4Loader.loadScene(slime4Loader.defaultScene);
+const slime4Node = sceneSlime4.find(node => node.getComponentOfType(Model));
+
+slime4Node.addComponent(new Transform({
+    scale : [0.7,0.7,0.7],
+    translation : [3.45, 0, -1.7], // x, z, y
+    rotation : [0, 1, 0, 1],
+}));
+traps.push(slime4Node);
+slime4Node.type = "slime";
+
+const slime6Loader = new GLTFLoader();
+await slime6Loader.load('common/models/Slime.gltf');
+const sceneSlime6 = slime6Loader.loadScene(slime6Loader.defaultScene);
+const slime6Node = sceneSlime6.find(node => node.getComponentOfType(Model));
+
+slime6Node.addComponent(new Transform({
+    scale : [1,1,1],
+    translation : [4.25, 0, -2.3], // x, z, y
+}));
+traps.push(slime6Node);
+slime6Node.type = "slime";
+
+const slime7Loader = new GLTFLoader();
+await slime7Loader.load('common/models/Slime.gltf');
+const sceneSlime7 = slime7Loader.loadScene(slime7Loader.defaultScene);
+const slime7Node = sceneSlime7.find(node => node.getComponentOfType(Model));
+
+slime7Node.addComponent(new Transform({
+    scale : [1,1,1],
+    translation : [4.85, 0, -3.2], // x, z, y
+    rotation : [0, 1, 0, 0],
+}));
+traps.push(slime7Node);
+slime7Node.type = "slime";
 
 // Vsi trapi združeni
 for (let trap of traps) {
@@ -313,11 +486,13 @@ for (let trap of traps) {
     trap.playerHasBeenHit = false;
 }
 
-scene.addChild(trap1Node);
-scene.addChild(trap2Node);
-scene.addChild(trap3Node);
-scene.addChild(trap4Node);
 scene.addChild(slime1Node);
+scene.addChild(slime2Node);
+scene.addChild(slime3Node);
+scene.addChild(slime4Node);
+scene.addChild(slime5Node);
+scene.addChild(slime6Node);
+scene.addChild(slime7Node);
 
 //
 // LIGHT COMPONENTS
@@ -450,8 +625,8 @@ export function calculateWorldBoundingBox(node, object) {
 	// Bounding box that is used with traps
     if (object == "trap") {
         node.boundingBoxTraps = {
-            min: {x: minX - minX*0.01 , y: minY - minY*0.01, z: minZ - minZ*0.01},
-            max: {x: maxX + maxX*0.01, y: maxY - maxY*0.01, z: maxZ + maxZ*0.01}
+            min: {x: minX, y: minY, z: minZ},
+            max: {x: maxX, y: maxY, z: maxZ}
         };
     }
 
