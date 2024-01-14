@@ -60,6 +60,21 @@
         Your browser does not support the audio tag.
     </audio>
 
+    <audio id="damage">
+        <source src="Assets/Audio/Damage.mp3" type="audio/mpeg">
+        Your browser does not support the audio tag.
+    </audio>
+
+    <audio id="death">
+        <source src="Assets/Audio/Smrt.mp3" type="audio/mpeg">
+        Your browser does not support the audio tag.
+    </audio>
+
+    <audio id="walking">
+        <source src="Assets/Audio/Korak.mp3" type="audio/mpeg">
+        Your browser does not support the audio tag.
+    </audio>
+
     <div id="controls">
         <table style="width:100%">
             <tr>
@@ -129,7 +144,8 @@
     </div>
 
     <script type="module">
-        import { victory, doorOpeningSound, diedBy } from './common/engine/controllers/FirstPersonController.js';
+        import { victory, doorOpeningSound, diedBy, damageSound, walkingSound } from './common/engine/controllers/FirstPersonController.js';
+        let deathSoundPlayed = false;
         const video = document.getElementById('video-background');
         const siren = document.getElementById('Siren');
         const menuSound = document.getElementById('menu-sound');
@@ -176,6 +192,7 @@
 
         document.getElementById('start-button').addEventListener('click', function () {
             if (!isPlayerNameEmpty()) {
+                deathSoundPlayed = false;
                 document.getElementById('start-menu').style.display = 'none';
                 siren.play();
                 ambient.play();
@@ -196,7 +213,7 @@
             }
         });
 
-        document.addEventListener('keydown', function (event) {
+        function checkGameStatus() {
             if (victory == 2) {
                 document.getElementById('flawless-victory-screen').style.display = 'block';
                 ambient.pause();
@@ -211,20 +228,39 @@
                 victorySound.play()
             }
 
-            if (victory <= -3) {
-                if (diedBy == "spikes")
+            if (victory <= -3 && !deathSoundPlayed) {
+                if (diedBy == "spikes") {
                     document.getElementById('defeat-screen-spikes').style.display = 'block';
-                else if (diedBy == "slime")
+                } else if (diedBy == "slime") {
                     document.getElementById('defeat-screen-slime').style.display = 'block';
+                }
                 ambient.pause();
                 clearInterval(timerInterval);
                 defeteSound.play()
+                document.getElementById('death').play(); // Play the death sound
+                deathSoundPlayed = true;
             }
 
             if (doorOpeningSound == true) {
                 document.getElementById('door-opening').play();
             } else document.getElementById('door-opening').pause();
-        });
+
+            let damageAudioElement = document.getElementById('damage');
+            if (damageSound == true && damageAudioElement.paused) {
+                damageAudioElement.play();
+            }
+
+            if (walkingSound == true) {
+                document.getElementById('walking').play();
+            } else document.getElementById('walking').pause();
+
+            if (deathSoundPlayed) {
+                document.getElementById('damage').pause();
+            }
+        }
+
+        // Set the interval to 100 miliseconds
+        setInterval(checkGameStatus, 100);
 
         updateStartButtonState();
     </script>

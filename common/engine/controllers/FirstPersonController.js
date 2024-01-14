@@ -6,7 +6,8 @@ import { QuadTree, Rectangle } from '../../../QuadTree.js';
 import { calculateWorldBoundingBox, traps, keys, quadTree, doors, scene } from '../../../main.js';
 
 export let victory = 0; // 0 = three hearts, -1 = two hearts, -2 = one heart, -3 = death, 1 = victory, 2 = flawless victory
-export let doorOpeningSound = false, diedBy = "";
+export let doorOpeningSound = false, damageSound = false, walkingSound = false;
+export let diedBy = "";
 
 export class FirstPersonController {
 
@@ -95,7 +96,6 @@ export class FirstPersonController {
         let collisionNormals = [];
         let currentPosition = vec3.clone(transform.translation);
         //console.log(currentPosition[0] + ", " + currentPosition[2]);
-        console.log("Victory: " + victory);
         const numSteps = 5;
         const collisionTolerance = 0.05;
         let finalPositionSafe = true;
@@ -147,7 +147,7 @@ export class FirstPersonController {
         vec3.scaleAndAdd(finalPotentialPosition, currentPosition, this.velocity, dt);
 
         // Update the player's position only if it's safe
-        if (finalPositionSafe) {
+        if (finalPositionSafe && victory > -3) {
             vec3.copy(transform.translation, finalPotentialPosition);
         }
 
@@ -252,7 +252,7 @@ export class FirstPersonController {
         }
 
         // Check if finalPositionSafe is true before moving the player
-        if (finalPositionSafe) {
+        if (finalPositionSafe && victory > -3) {
             // Calculate the final potential position based on adjusted velocity (after bounce)
             let finalPotentialPosition = vec3.clone(currentPosition);
             vec3.scaleAndAdd(finalPotentialPosition, currentPosition, this.velocity, dt);
@@ -269,6 +269,7 @@ export class FirstPersonController {
         }
 
         // Traps
+        let noHits = true;
         for (let trap of traps) {
             if (this.checkCollision(playerBox, trap.boundingBoxTraps)) {
                 // If the player is colliding with the trap for the first time
@@ -276,18 +277,23 @@ export class FirstPersonController {
                 if (trap.type == "slime") diedBy = "slime";
                 if (!trap.playerHasBeenHit) {
                     // DEATH
-                    if (victory < 1) {
+                    if (victory < 1 && victory > -3) {
                         victory -= 1;
                         console.log(3 + victory + " hearts remaining");
                     }
                     trap.playerHasBeenHit = true;
                 }
+                noHits = false;
+                damageSound = true;
             } else {
                 // If the player is not colliding with the trap, reset the flag
                 trap.playerHasBeenHit = false;
             }
             if (trap.type == "spikes")
                 this.trapMove(trap, dt);
+        }
+        if (noHits) {
+            damageSound = false;
         }
         // Update velocity
         vec3.scaleAndAdd(this.velocity, this.velocity, acc, dt * this.acceleration * sprintMultiplier);
@@ -307,11 +313,11 @@ export class FirstPersonController {
         // Limit speed to prevent accelerating to infinity and beyond
         // Add sprint multiplier if shift is pressed
         const speed = vec3.length(this.velocity);
-        if (speed > this.maxSpeed) {
+        if (speed > this.maxSpeed && victory > -3) {
             vec3.scale(this.velocity, this.velocity, (this.maxSpeed / speed) * sprintMultiplier);
         }
 
-        if (transform && finalPositionSafe) {
+        if (transform && finalPositionSafe && victory > -3) {
             // Update translation based on velocity.
             vec3.scaleAndAdd(transform.translation,
                 transform.translation, this.velocity, dt);
@@ -325,6 +331,14 @@ export class FirstPersonController {
 
         if (this.eKeyJustPressed) {
             this.eKeyJustPressed = false;
+        }
+
+        if (this.velocity[0] == 0 && this.velocity[1] == 0 && this.velocity[2] == 0) {
+            walkingSound = false;
+        } else if (victory > -3) walkingSound = true;
+
+        if (victory <= -3) {
+            this.deathFall(dt, transform);
         }
     }
 
@@ -473,7 +487,7 @@ export class FirstPersonController {
         }
         if (door.components[0].translation[1] < openHeight) {
             doorOpeningSound = true;
-            door.components[0].translation[1] += dt * 0.2; // doorOpeningSpeed is the speed at which the door opens
+            door.components[0].translation[1] += dt * 0.5; // doorOpeningSpeed is the speed at which the door opens
             door.opening = true;
             calculateWorldBoundingBox(door, "door");
             for (let key of keys) {
@@ -528,6 +542,14 @@ export class FirstPersonController {
                     trap.direction = false;
                 }
             }
+        }
+    }
+
+    deathFall (dt, transform) {
+        if (transform.translation[1] > 0.2) {
+            transform.translation[1] -= dt * 0.2;
+        } else {
+            victory = -3;
         }
     }
 }
