@@ -5,8 +5,8 @@ import { QuadTree, Rectangle } from '../../../QuadTree.js';
 // Import object arrays from main.js
 import { calculateWorldBoundingBox, traps, keys, quadTree, doors, scene } from '../../../main.js';
 
-export let victory = 0; // 0 = three hearts, -1 = two hearts, -2 = one heart, -3 = death, 1 = victory
-export let doorOpeningSound = false;
+export let victory = 0; // 0 = three hearts, -1 = two hearts, -2 = one heart, -3 = death, 1 = victory, 2 = flawless victory
+export let doorOpeningSound = false, diedBy = "";
 
 export class FirstPersonController {
 
@@ -95,6 +95,7 @@ export class FirstPersonController {
         let collisionNormals = [];
         let currentPosition = vec3.clone(transform.translation);
         //console.log(currentPosition[0] + ", " + currentPosition[2]);
+        console.log("Victory: " + victory);
         const numSteps = 5;
         const collisionTolerance = 0.05;
         let finalPositionSafe = true;
@@ -105,7 +106,7 @@ export class FirstPersonController {
             let stepFraction = (step + 1) / numSteps;
             let nextPosition = this.calculateNextPosition(dt * stepFraction);
 
-            const playerNode = quadTree.findLeafNode({ x: nextPosition[0], y: nextPosition[2] });
+            let playerNode = quadTree.findLeafNode({ x: nextPosition[0], y: nextPosition[2] });
             if (playerNode) {
                 for (let object of playerNode.objects) {
                     let collisionInfo = this.checkCollisionLevel(nextPosition[0], nextPosition[2], object);
@@ -271,11 +272,11 @@ export class FirstPersonController {
         for (let trap of traps) {
             if (this.checkCollision(playerBox, trap.boundingBoxTraps)) {
                 // If the player is colliding with the trap for the first time
-                //if (trap.type == "spikes") console.log("Collision with spikes detected!");
-                //if (trap.type == "slime") console.log("Collision with slime detected!");
+                if (trap.type == "spikes") diedBy = "spikes";
+                if (trap.type == "slime") diedBy = "slime";
                 if (!trap.playerHasBeenHit) {
                     // DEATH
-                    if (victory != 1) {
+                    if (victory < 1) {
                         victory -= 1;
                         console.log(3 + victory + " hearts remaining");
                     }
@@ -374,7 +375,7 @@ export class FirstPersonController {
 
     calculateBoundingBoxPlayer(position) {
         // Define the player size
-        const playerSize = { width: 0.15, height: 0.399, depth: 0.15};
+        const playerSize = { width: 0.12, height: 0.399, depth: 0.12};
     
         return {
             min: {
@@ -488,6 +489,9 @@ export class FirstPersonController {
             door.opening = false;
 
             if (door.order == 3 && victory == 0) {
+                victory = 2; // Flawless victory
+            }
+            else if (door.order == 3 && victory > -3) {
                 victory = 1;
             }
         }

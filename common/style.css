@@ -47,7 +47,9 @@ a, a:link, a:visited {
 }
 
 #victory-screen,
-#defeat-screen {
+#defeat-screen-slime,
+#defeat-screen-spikes,
+#flawless-victory-screen {
     position: absolute;
     top: 40%;
     left: 50%;
@@ -58,16 +60,19 @@ a, a:link, a:visited {
 }
 
 #ZMAGA,
-#KONEC {
+#KONECspikes,
+#KONECslime,
+#ZMAGAflawless {
     font-size: 50px;
     padding-bottom: 20px;
 }
 
-#victory-screen {
+#victory-screen, #flawless-victory-screen {
     color: gold;
 }
 
-#defeat-screen {
+#defeat-screen-spikes,
+#defeat-screen-slime {
     color: red;
 }
 

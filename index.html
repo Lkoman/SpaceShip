@@ -104,13 +104,23 @@
 
     <div id="timer" style="display: none;">00:00</div>
 
-    <div id="defeat-screen" style="display: none;">
-        <p id="KONEC"><b>KONEC IGRE</b></p>
-        <p><a href="index.html">NOVA IGRA</a></p>
+    <div id="defeat-screen-spikes" style="display: none;">
+        <p id="KONECspikes"><b>NABODEN!</b></p>
+        <p><a href="index.html">POSKUSI ŠE ENKRAT</a></p>
+    </div>
+
+    <div id="defeat-screen-slime" style="display: none;">
+        <p id="KONECslime"><b>BIL SI RAZTOPLJEN:(</b></p>
+        <p><a href="index.html">POSKUSI ŠE ENKRAT</a></p>
     </div>
 
     <div id="victory-screen" style="display: none;">
         <p id="ZMAGA"><b>ZMAGA</b></p>
+        <p></p><a href="index.html">NOVA IGRA</a></p>
+    </div>
+
+    <div id="flawless-victory-screen" style="display: none;">
+        <p id="ZMAGAflawless"><b>FLAWLESS ZMAGA!</b></p>
         <p></p><a href="index.html">NOVA IGRA</a></p>
     </div>
 
@@ -119,7 +129,7 @@
     </div>
 
     <script type="module">
-        import { victory, doorOpeningSound } from './common/engine/controllers/FirstPersonController.js';
+        import { victory, doorOpeningSound, diedBy } from './common/engine/controllers/FirstPersonController.js';
         const video = document.getElementById('video-background');
         const siren = document.getElementById('Siren');
         const menuSound = document.getElementById('menu-sound');
@@ -187,6 +197,13 @@
         });
 
         document.addEventListener('keydown', function (event) {
+            if (victory == 2) {
+                document.getElementById('flawless-victory-screen').style.display = 'block';
+                ambient.pause();
+                clearInterval(timerInterval);
+                victorySound.play()
+            }
+            
             if (victory == 1) {
                 document.getElementById('victory-screen').style.display = 'block';
                 ambient.pause();
@@ -195,7 +212,10 @@
             }
 
             if (victory <= -3) {
-                document.getElementById('defeat-screen').style.display = 'block';
+                if (diedBy == "spikes")
+                    document.getElementById('defeat-screen-spikes').style.display = 'block';
+                else if (diedBy == "slime")
+                    document.getElementById('defeat-screen-slime').style.display = 'block';
                 ambient.pause();
                 clearInterval(timerInterval);
                 defeteSound.play()
