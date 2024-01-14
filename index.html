@@ -22,6 +22,11 @@
             <img src="Ishimura_Evakuacija_text.png" alt="text">
             <p><input type="text" id="playerName" placeholder="uporabniško ime" required></p>
             <p><button id="start-button">ZAČNI IGRO</button></p>
+            <p id="help-info"><i>Pritisnite Esc ali ALt za piraz miške</i></p>
+            <label class="switch" id="switch">
+                <input type="checkbox" id="soundSwitch" checked>
+                <span class="slider"></span>
+            </label>
         </div>
     </div>
 
@@ -142,6 +147,14 @@
             const startButton = document.getElementById('start-button');
             startButton.disabled = isPlayerNameEmpty();
         }
+
+        document.getElementById('soundSwitch').addEventListener('change', function () {
+            if (soundSwitch.checked) {
+                menuSound.play();
+            } else {
+                menuSound.pause();
+            }
+        });
 
         document.getElementById('playerName').addEventListener('input', updateStartButtonState);
 
