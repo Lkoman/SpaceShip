@@ -93,7 +93,7 @@ export class FirstPersonController {
         // Collision detection with walls
         let collisionNormals = [];
         let currentPosition = vec3.clone(transform.translation);
-        console.log(currentPosition[0] + ", " + currentPosition[2]);
+        //console.log(currentPosition[0] + ", " + currentPosition[2]);
         const numSteps = 5;
         const collisionTolerance = 0.05;
         let finalPositionSafe = true;
@@ -270,6 +270,8 @@ export class FirstPersonController {
         for (let trap of traps) {
             if (this.checkCollision(playerBox, trap.boundingBoxTraps)) {
                 // If the player is colliding with the trap for the first time
+                //if (trap.type == "spikes") console.log("Collision with spikes detected!");
+                //if (trap.type == "slime") console.log("Collision with slime detected!");
                 if (!trap.playerHasBeenHit) {
                     // DEATH
                     if (victory != 1) {
@@ -520,7 +522,5 @@ export class FirstPersonController {
                 }
             }
         }
-        //console.log("trap");
-        //if (trap.axis == 2) console.log(trap.components[2].translation);
     }
 }
