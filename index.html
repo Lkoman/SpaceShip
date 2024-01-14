@@ -114,7 +114,7 @@
     </div>
 
     <script type="module">
-        import { victory } from './common/engine/controllers/FirstPersonController.js';
+        import { victory, doorOpeningSound } from './common/engine/controllers/FirstPersonController.js';
         const video = document.getElementById('video-background');
         const siren = document.getElementById('Siren');
         const menuSound = document.getElementById('menu-sound');
@@ -194,6 +194,10 @@
                 ambient.pause();
                 clearInterval(timerInterval);
                 defeteSound.play()
+            }
+
+            if (doorOpeningSound == true) {
+                document.getElementById('door-opening-sound').play();
             }
         });
 

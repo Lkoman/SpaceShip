@@ -6,6 +6,7 @@ import { QuadTree, Rectangle } from '../../../QuadTree.js';
 import { calculateWorldBoundingBox, traps, keys, quadTree, doors, scene } from '../../../main.js';
 
 export let victory = 0; // 0 = three hearts, -1 = two hearts, -2 = one heart, -3 = death, 1 = victory
+export let doorOpeningSound = false;
 
 export class FirstPersonController {
 
@@ -470,6 +471,7 @@ export class FirstPersonController {
             return 0;
         }
         if (door.components[0].translation[1] < openHeight) {
+            doorOpeningSound = true;
             door.components[0].translation[1] += dt * 0.2; // doorOpeningSpeed is the speed at which the door opens
             door.opening = true;
             calculateWorldBoundingBox(door, "door");
@@ -481,6 +483,7 @@ export class FirstPersonController {
                 }
             }
         } else {
+            doorOpeningSound = false;
             door.open = true;
             door.opening = false;
 
