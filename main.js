@@ -25,7 +25,7 @@ export let keys = [];
 export let doors = [];
 export let traps = [];
 export let playerHeight = 0.3999999761581421;
-let victory = 0; // 0 = nothing, -1 = defeat, 1 = victory
+export let victory = 0; // 0 = nothing, -1 = defeat, 1 = victory
 
 
 // Load the level model
@@ -40,16 +40,14 @@ const levelBounds = new Rectangle(-(calculateDimensions(levelNode).w/2), -(calcu
 export const quadTree = new QuadTree(levelBounds, 200);
 extractTrianglesFromLevel(levelNode, playerHeight);
 
-//quadTree.logNodeDetails();
-
 // Set up the camera
 export const camera = scene.find(node => node.getComponentOfType(Camera));
 camera.addComponent(new FirstPersonController(camera, document.body, { distance : 2}));
 
 const modelNode = scene.find(node => node.getComponentOfType(Model));
 modelNode.addComponent(new Transform({
-	scale : [1,1,1],
-	translation : [0,0,0],
+	scale : [1, 1, 1],
+	translation : [0, 0, 0],
 }));
 
 // Add key models
@@ -59,8 +57,8 @@ const sceneKey1 = key1Loader.loadScene(key1Loader.defaultScene);
 const key1Node = sceneKey1.find(node => node.getComponentOfType(Model));
 
 key1Node.addComponent(new Transform({
-	scale : [1,1,1],
-	translation : [0,0,0], // x, z, y
+	scale : [1, 1, 1],
+	translation : [0, 0, 0], // x, z, y
 }));
 key1Node.order = 1;
 
@@ -70,8 +68,8 @@ const sceneKey2 = key2Loader.loadScene(key2Loader.defaultScene);
 const key2Node = sceneKey2.find(node => node.getComponentOfType(Model));
 
 key2Node.addComponent(new Transform({
-	scale : [1,1,1],
-	translation : [0,0,0], // x, z, y
+	scale : [1, 1, 1],
+	translation : [0, 0, 0], // x, z, y
 }));
 key2Node.order = 2;
 
@@ -81,15 +79,15 @@ const sceneKey3 = key3Loader.loadScene(key3Loader.defaultScene);
 const key3Node = sceneKey3.find(node => node.getComponentOfType(Model));
 
 key3Node.addComponent(new Transform({
-	scale : [1,1,1],
-	translation : [0,0,0], // x, z, y
+	scale : [1, 1, 1],
+	translation : [0, 0, 0], // x, z, y
 }));
 key3Node.order = 3;
 
 // Set the position of keys
 key1Node.components[0].translation = [1, 0.3, 0]; // x, z, y
-key2Node.components[0].translation = [1.5, 0.3, 1]; // x, z, y
-key3Node.components[0].translation = [1.2, 0.3, 0]; // x, z, y
+key2Node.components[0].translation = [4.5, 0.3, -3.3]; // x, z, y
+key3Node.components[0].translation = [-4, 0.3, 2]; // x, z, y
 keys.push(key1Node);
 keys.push(key2Node);
 keys.push(key3Node);
@@ -113,20 +111,95 @@ const sceneDoor1 = door1Loader.loadScene(door1Loader.defaultScene);
 const door1Node = sceneDoor1.find(node => node.getComponentOfType(Model));
 
 door1Node.addComponent(new Transform({
-	scale : [1,1,1],
-	translation : [0,0,0], // x, z, y
+	scale : [1, 1, 1],
+	translation : [0, 0, 0], // x, z, y
 }));
 door1Node.order = 1;
+door1Node.zamik = 0;
+
+const door2Loader = new GLTFLoader();
+await door2Loader.load('common/models/Door.gltf');
+const sceneDoor2 = door2Loader.loadScene(door2Loader.defaultScene);
+const door2Node = sceneDoor2.find(node => node.getComponentOfType(Model));
+
+// Create door node and add a Transform component
+door2Node.addComponent(new Transform({
+    scale: [1, 1, 1],
+    translation: [0, 0, 0], // Set initial position (you might need to adjust this)
+}));
+door2Node.order = 2;
+door2Node.components[0].translation = [0.0230344068 - 3.673, 0.399999976 - 0.399999976, 0.412283927 + 0.83772];
+door2Node.components[0].rotation = [0,0,0,0.999506533];
+door2Node.zamik = 0.2;
+
+const door3Loader = new GLTFLoader();
+await door3Loader.load('common/models/Door.gltf');
+const sceneDoor3 = door3Loader.loadScene(door3Loader.defaultScene);
+const door3Node = sceneDoor3.find(node => node.getComponentOfType(Model));
+
+// Create door node and add a Transform component
+door3Node.addComponent(new Transform({
+    scale: [1, 1, 1],
+    translation: [0, 0, 0], // Set initial position (you might need to adjust this)
+}));
+door3Node.order = 3;
+door3Node.components[0].translation = [0.0230344068 + 1.507, 0.399999976 - 0.399999976, 0.412283927 - 0.93];
+door3Node.components[0].rotation = [0,0,0,0.999506533];
+door3Node.zamik = 0;
+
+let transform3d = door3Node.components[0]; // Get the transform component
+let rotationQuaternion3d = quat.create();
+const zAxis3d = [0, 1, 0]; // Z-axis for rotation
+const angleInRadians3d = Math.PI / 2; // 90 degrees in radians
+// Create a quaternion for a 90-degree rotation around the Z-axis
+quat.setAxisAngle(rotationQuaternion3d, zAxis3d, angleInRadians3d);
+// Apply this quaternion to the trap's rotation
+transform3d.rotation = rotationQuaternion3d;
+
 doors.push(door1Node);
+doors.push(door2Node);
+doors.push(door3Node);
 
 for (let door of doors) {
     calculateWorldBoundingBox(door, "door");
-    console.log(door);
     door.open = false;
     door.opening = false;
 }
 
 scene.addChild(door1Node);
+scene.addChild(door2Node);
+scene.addChild(door3Node);
+
+// Add trap models
+const trap1Loader = new GLTFLoader();
+await trap1Loader.load('common/models/Spikes.gltf');
+const sceneTrap1 = trap1Loader.loadScene(trap1Loader.defaultScene);
+const trap1Node = sceneTrap1.find(node => node.getComponentOfType(Model));
+
+trap1Node.addComponent(new Transform({
+    scale : [1,1,1],
+    translation : [0, 0, 0], // x, z, y
+}));
+trap1Node.components[0].translation = [0.0230344068 - 0.1,0.399999976 - 0.3,0.412283927]
+trap1Node.components[0].rotation = [0, 0, 0, 0.999506533];
+
+let transform = trap1Node.components[0]; // Get the transform component
+let rotationQuaternion = quat.create();
+const zAxis = [0, 1, 0]; // Z-axis for rotation
+const angleInRadians = Math.PI / 2; // 90 degrees in radians
+// Create a quaternion for a 90-degree rotation around the Z-axis
+quat.setAxisAngle(rotationQuaternion, zAxis, angleInRadians);
+// Apply this quaternion to the trap's rotation
+transform.rotation = rotationQuaternion;
+
+traps.push(trap1Node);
+
+for (let trap of traps) {
+    calculateWorldBoundingBox(trap, "trap");
+    trap.direction = true;
+}
+
+scene.addChild(trap1Node);
 
 //
 // LIGHT COMPONENTS
@@ -164,8 +237,43 @@ light2.addComponent(new LinearAnimator(light2, {
 
 }));
 
+const light3 = new Node();
+light3.addComponent(new Light({
+	color : [1.0,0,0,1.0],
+	ambient  : 0.0,
+	shininess : 100,
+}));
+
+light3.addComponent(new Transform());
+light3.addComponent(new LinearAnimator(light3, { 
+	startPosition : [-4.0,0.2,0.5],
+	endPosition: [-4.0,0.2,3.5],
+	duration : 2,
+	loop : true,
+
+}));
+
+
+const light4 = new Node();
+light4.addComponent(new Light({
+	color : [0.0,0,1,1.0],
+	ambient  : 0.0,
+	shininess : 100,
+}));
+
+light4.addComponent(new Transform());
+light4.addComponent(new LinearAnimator(light4, { 
+	startPosition : [4.8,0.2,-1],
+	endPosition: [4.8,0.2,-3.5],
+	duration : 2,
+	loop : true,
+
+}));
+
 scene.addChild(light);
 scene.addChild(light2);
+scene.addChild(light3);
+scene.addChild(light4);
 
 function update(time, dt) {
 	scene.traverse(node => {
@@ -237,7 +345,7 @@ export function calculateWorldBoundingBox(node, object) {
         }
         node.boundingBox = {
             min: {x: minX - minX*0.05 , y: minY - minY*0.05, z: minZ - minZ*0.05},
-            max: {x: maxX + maxX*0.05, y: maxY - maxY*0.05, z: maxZ + maxZ*0.05}
+            max: {x: maxX + maxX*0.05 + node.zamik, y: maxY - maxY*0.05 + node.zamik, z: maxZ + maxZ*0.05}
         };
     }
 	node.boundingBoxBig = {
