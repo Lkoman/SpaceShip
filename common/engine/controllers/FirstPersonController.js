@@ -5,7 +5,7 @@ import { QuadTree, Rectangle } from '../../../QuadTree.js';
 // Import object arrays from main.js
 import { calculateWorldBoundingBox, traps, keys, quadTree, doors, scene } from '../../../main.js';
 
-export let victory = 0; // 0 = nothing, -1 = defeat, 1 = victory
+export let victory = 0; // 0 = three hearts, -1 = two hearts, -2 = one heart, -3 = death, 1 = victory
 
 export class FirstPersonController {
 
@@ -93,7 +93,7 @@ export class FirstPersonController {
         // Collision detection with walls
         let collisionNormals = [];
         let currentPosition = vec3.clone(transform.translation);
-        console.log(currentPosition[0] + ", " + currentPosition[2]);
+        //console.log(currentPosition[0] + ", " + currentPosition[2]);
         const numSteps = 5;
         const collisionTolerance = 0.05;
         let finalPositionSafe = true;
@@ -269,9 +269,18 @@ export class FirstPersonController {
         // Traps
         for (let trap of traps) {
             if (this.checkCollision(playerBox, trap.boundingBoxTraps)) {
-                // DEATH
-                victory = -1;
-                console.log("Collision with trap detected!");
+                // If the player is colliding with the trap for the first time
+                if (!trap.playerHasBeenHit) {
+                    // DEATH
+                    if (victory != 1) {
+                        victory -= 1;
+                        console.log(3 + victory + " hearts remaining");
+                    }
+                    trap.playerHasBeenHit = true;
+                }
+            } else {
+                // If the player is not colliding with the trap, reset the flag
+                trap.playerHasBeenHit = false;
             }
             if (trap.type == "spikes")
                 this.trapMove(trap, dt);

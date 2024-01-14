@@ -252,13 +252,13 @@ const sceneTrap3 = trap3Loader.loadScene(trap3Loader.defaultScene);
 const trap3Node = sceneTrap3.find(node => node.getComponentOfType(Model));
 
 trap3Node.addComponent(new Transform({
-    scale : [1,1,1],
-    translation : [0, 0, 2.1], // x, z, y
+    scale : [1,1,2],
+    translation : [0, 0, 1.5], // x, z, y
 }));
 trap3Node.speed1 = 1.1;
 trap3Node.speed2 = 0.25;
-trap3Node.positionFrom = 0.7;
-trap3Node.positionTo = 2;
+trap3Node.positionFrom = 0.8;
+trap3Node.positionTo = 1.8;
 trap3Node.axis = 2;
 
 const trap4Loader = new GLTFLoader();
@@ -267,13 +267,13 @@ const sceneTrap4 = trap4Loader.loadScene(trap4Loader.defaultScene);
 const trap4Node = sceneTrap4.find(node => node.getComponentOfType(Model));
 
 trap4Node.addComponent(new Transform({
-    scale : [1,1,1],
-    translation : [0.4, 0, 2], // x, z, y
+    scale : [1,1,2],
+    translation : [0.4, 0, 1.5], // x, z, y
 }));
 trap4Node.speed1 = 1;
 trap4Node.speed2 = 0.3;
-trap4Node.positionFrom = 0.7;
-trap4Node.positionTo = 2;
+trap4Node.positionFrom = 0.8;
+trap4Node.positionTo = 1.8;
 trap4Node.axis = 2;
 
 traps.push(trap1Node);
@@ -300,7 +300,7 @@ const slime1Node = sceneSlime1.find(node => node.getComponentOfType(Model));
 
 slime1Node.addComponent(new Transform({
     scale : [0.7,0.7,0.7],
-    translation : [0.045, 0, 0.51], // x, z, y
+    translation : [0.165, 0, 0.71], // x, z, y
 }));
 traps.push(slime1Node);
 slime1Node.type = "slime";
@@ -310,6 +310,7 @@ console.log(slime1Node);
 // Vsi trapi združeni
 for (let trap of traps) {
     calculateWorldBoundingBox(trap, "trap");
+    trap.playerHasBeenHit = false;
 }
 
 scene.addChild(trap1Node);
