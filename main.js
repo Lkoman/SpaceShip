@@ -41,6 +41,7 @@ extractTrianglesFromLevel(levelNode, playerHeight);
 // Set up the camera
 export const camera = scene.find(node => node.getComponentOfType(Camera));
 camera.addComponent(new FirstPersonController(camera, document.body, { distance : 2}));
+camera.components[0].translation[2] = -1;
 
 const modelNode = scene.find(node => node.getComponentOfType(Model));
 modelNode.addComponent(new Transform({
@@ -203,17 +204,15 @@ const trap1Node = sceneTrap1.find(node => node.getComponentOfType(Model));
 
 trap1Node.addComponent(new Transform({
     scale : [1,1,1],
-    translation : [0, 0, 0], // x, z, y
+    translation : [2, 0, -1.52], // x, z, y
 }));
 trap1Node.speed1 = 1;
 trap1Node.speed2 = 0.24;
-trap1Node.positionFrom = -0.4 + 3.55;
-trap1Node.positionTo = -0.08 + 3.55;
+trap1Node.positionFrom = 1.93;
+trap1Node.positionTo = 2.5;
 trap1Node.axis = 0;
-trap1Node.components[0].translation = [0.0230344068 + 3, 0.399999976 - 0.3, 0.412283927 + 0.11];
-trap1Node.components[0].rotation = [0, 0, 0, 0.999506533];
 
-let transform = trap1Node.components[0]; // Get the transform component
+let transform = trap1Node.components[2]; // Get the transform component
 let rotationQuaternion = quat.create();
 const zAxis = [0, 1, 0]; // Z-axis for rotation
 const angleInRadians = Math.PI / 2; // 90 degrees in radians
@@ -229,17 +228,15 @@ const trap2Node = sceneTrap2.find(node => node.getComponentOfType(Model));
 
 trap2Node.addComponent(new Transform({
     scale : [1,1,1],
-    translation : [0, 0, 0], // x, z, y
+    translation : [2, 0, -0.95], // x, z, y
 }));
 trap2Node.speed1 = 1.5;
 trap2Node.speed2 = 0.12;
-trap2Node.positionFrom = -0.4 + 3.55;
-trap2Node.positionTo = -0.08 + 3.55;
+trap2Node.positionFrom = 1.93;
+trap2Node.positionTo = 2.5;
 trap2Node.axis = 0;
-trap2Node.components[0].translation = [0.0230344068 + 3, 0.399999976 - 0.3, 0.412283927 + 0.7];
-trap2Node.components[0].rotation = [0, 0, 0, 0.999506533];
 
-let transformt2 = trap2Node.components[0]; // Get the transform component
+let transformt2 = trap2Node.components[2]; // Get the transform component
 let rotationQuaterniont2 = quat.create();
 const zAxist2 = [0, 1, 0]; // Z-axis for rotation
 const angleInRadianst2 = Math.PI / 2; // 90 degrees in radians
@@ -255,21 +252,33 @@ const trap3Node = sceneTrap3.find(node => node.getComponentOfType(Model));
 
 trap3Node.addComponent(new Transform({
     scale : [1,1,1],
-    translation : [0, 0, 0], // x, z, y
+    translation : [0, 0, 2.1], // x, z, y
 }));
-trap3Node.speed1 = 0.4;
-trap3Node.speed2 = 0.2;
-trap3Node.positionFrom = 1.9426839269999858;
-trap3Node.positionTo = 2.8718839269999967;
+trap3Node.speed1 = 1.1;
+trap3Node.speed2 = 0.25;
+trap3Node.positionFrom = 0.7;
+trap3Node.positionTo = 2;
 trap3Node.axis = 2;
-trap3Node.components[0].translation = [0.0230344068 - 1, 0.399999976 - 0.3, 0.412283927];
-trap3Node.components[0].rotation = [0, 0, 0, 0.999506533];
 
-console.log(trap3Node);	
+const trap4Loader = new GLTFLoader();
+await trap4Loader.load('common/models/Spikes.gltf');
+const sceneTrap4 = trap4Loader.loadScene(trap4Loader.defaultScene);
+const trap4Node = sceneTrap4.find(node => node.getComponentOfType(Model));
+
+trap4Node.addComponent(new Transform({
+    scale : [1,1,1],
+    translation : [0.4, 0, 2], // x, z, y
+}));
+trap4Node.speed1 = 1;
+trap4Node.speed2 = 0.3;
+trap4Node.positionFrom = 0.7;
+trap4Node.positionTo = 2;
+trap4Node.axis = 2;
 
 traps.push(trap1Node);
 traps.push(trap2Node);
 traps.push(trap3Node);
+traps.push(trap4Node);
 
 for (let trap of traps) {
     calculateWorldBoundingBox(trap, "trap");
@@ -279,6 +288,7 @@ for (let trap of traps) {
 scene.addChild(trap1Node);
 scene.addChild(trap2Node);
 scene.addChild(trap3Node);
+scene.addChild(trap4Node);
 
 //
 // LIGHT COMPONENTS
@@ -379,9 +389,12 @@ new UpdateSystem({update, render}).start();
 export function calculateWorldBoundingBox(node, object) {
     let minX = Infinity, minY = Infinity, minZ = Infinity;
     let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+    let worldMatrix;
 
     // Get the world matrix
-    let worldMatrix = node.components[0].matrix;
+    if (object == "trap") {
+        worldMatrix = node.components[2].matrix;
+    } else worldMatrix = node.components[0].matrix;
 
     for (let vertex of node.components[1].primitives[0].mesh.vertices) {
 		if (vertex.normal.length === 0 && vertex.tangent.length === 0 && vertex.texcoords.length === 0) {
@@ -569,25 +582,3 @@ function calculateInterpolation(vertex1, vertex2, vertex3, minZ, maxZ, playerHei
 
     return [lineVertex1, lineVertex2];
 }
-
-/*function calculateAABB(triangle) {
-    let minX = Math.min(triangle[0].x, triangle[1].x, triangle[2].x);
-    let minY = Math.min(triangle[0].y, triangle[1].y, triangle[2].y);
-    let maxX = Math.max(triangle[0].x, triangle[1].x, triangle[2].x);
-    let maxY = Math.max(triangle[0].y, triangle[1].y, triangle[2].y);
-
-    // The depth here is actually the extent of the triangle along the y-axis.
-    let depth = maxY - minY;
-    let width = maxX - minX;
-    if (depth === 0) {
-        depth = 0.05;
-    }
-    if (width == 0) {
-        width = 0.05;
-    }
-
-	let aabb = new Rectangle(minX, minY, width, depth);
-
-    // Using the updated Rectangle class with the 'depth' property.
-    return aabb;
-}*/

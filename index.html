@@ -8,21 +8,21 @@
     <script src="lib/gl-matrix-min.js"></script>
     <script type="module" src="main.js"></script>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="Assets/favicon.ico" type="image/x-icon">
 </head>
 
 <body>
     <div id="start-menu" class="fullscreen pixelated">
         <video id="video-background" autoplay muted loop>
-            <source src="MenuAnimationLQ.mp4" type="video/mp4">
+            <source src="Assets/MenuAnimationLQ.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
 
         <div id="content-overlay">
-            <img src="Ishimura_Evakuacija_text.png" alt="text">
+            <img src="Assets/Img/Ishimura_Evakuacija_text.png" alt="text">
             <p><input type="text" id="playerName" placeholder="uporabniško ime" required></p>
             <p><button id="start-button">ZAČNI IGRO</button></p>
-            <p id="help-info"><i>Pritisnite Esc ali ALt za piraz miške</i></p>
+            <p id="help-info"><i>Pritisnite Esc ali ALt za prikaz miške</i></p>
             <label class="switch" id="switch">
                 <input type="checkbox" id="soundSwitch" checked>
                 <span class="slider"></span>
@@ -31,46 +31,46 @@
     </div>
 
     <audio id="menu-sound" loop>
-        <source src="menu-sound.mp3" type="audio/mpeg">
+        <source src="Assets/Audio/menu-sound.mp3" type="audio/mpeg">
         Your browser does not support the audio tag.
     </audio>
 
     <audio id="Siren">
-        <source src="Siren.mp3" type="audio/mpeg">
+        <source src="Assets/Audio/Siren.mp3" type="audio/mpeg">
         Your browser does not support the audio tag.
     </audio>
 
     <audio id="ambient" loop>
-        <source src="ambient-sound.mp3" type="audio/mpeg">
+        <source src="Assets/Audio/ambient-sound.mp3" type="audio/mpeg">
         Your browser does not support the audio tag.
     </audio>
 
     <audio id="victory-sound">
-        <source src="victory-sound.mp3" type="audio/mpeg">
+        <source src="Assets/Audio/victory-sound.mp3" type="audio/mpeg">
         Your browser does not support the audio tag.
     </audio>
 
     <audio id="defeat-sound">
-        <source src="defeat-sound.mp3" type="audio/mpeg">
+        <source src="Assets/Audio/defeat-sound.mp3" type="audio/mpeg">
         Your browser does not support the audio tag.
     </audio>
 
     <div id="controls">
         <table style="width:100%">
             <tr>
-                <td><img src="WASD_keys.png" id="control-img"></td>
+                <td><img src="Assets/Img/WASD_keys.png" id="control-img"></td>
                 <td>hoja</td>
             </tr>
             <tr>
-                <td><img src="Shift_key.png" id="control-img" style="scale: 70%;"></td>
+                <td><img src="Assets/Img/Shift_key.png" id="control-img" style="scale: 70%;"></td>
                 <td>tek</td>
             </tr>
             <tr>
-                <td><img src="E_key.png" id="control-img" style="scale: 70%;"></td>
+                <td><img src="Assets/Img/E_key.png" id="control-img" style="scale: 70%;"></td>
                 <td>interakcija</td>
             </tr>
             <tr>
-                <td><img src="Ctrl_key.png" id="control-img" style="scale: 70%;"></td>
+                <td><img src="Assets/Img/Ctrl_key.png" id="control-img" style="scale: 70%;"></td>
                 <td>počepni</td>
             </tr>
         </table>
@@ -92,8 +92,9 @@
             saj radioaktivne nevarnosti rastejo. Ali boste uspeli odkleniti vrata in pobegniti prav v zadnjem trenutku,
             ali pa se bo vaša usoda zapečatila v tem vesoljskem trilerju?
         </p>
-        <p id="story-buttonP" align="right"><button id="story-button"><img src="Yellow_Arrow.png" /></button></p>
-        <p id="help-text"><i>Pritisnite ALT, da prikažete miško</i></p>
+        <p id="story-buttonP" align="right"><button id="story-button"><img src="Assets/Img/Yellow_Arrow.png" /></button>
+        </p>
+        <p id="help-text"><i>Pritisnite Esc ali ALT, da prikažete miško</i></p>
     </div>
 
     <div id="timer" style="display: none;">00:00</div>
@@ -114,7 +115,6 @@
 
     <script type="module">
         import { victory } from './common/engine/controllers/FirstPersonController.js';
-        console.log(victory);
         const video = document.getElementById('video-background');
         const siren = document.getElementById('Siren');
         const menuSound = document.getElementById('menu-sound');
@@ -181,7 +181,7 @@
             }
         });
 
-        document.addEventListener('keydown', function(event) {
+        document.addEventListener('keydown', function (event) {
             if (victory == 1) {
                 document.getElementById('victory-screen').style.display = 'block';
                 ambient.pause();

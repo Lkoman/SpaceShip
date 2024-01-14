@@ -271,6 +271,7 @@ export class FirstPersonController {
             if (this.checkCollision(playerBox, trap.boundingBoxTraps)) {
                 // DEATH
                 victory = -1;
+                console.log("Collision with trap detected!");
             }
             this.trapMove(trap, dt);
         }
@@ -468,7 +469,7 @@ export class FirstPersonController {
             door.open = true;
             door.opening = false;
 
-            if (door.order == 3) {
+            if (door.order == 3 && victory == 0) {
                 victory = 1;
             }
         }
@@ -476,20 +477,20 @@ export class FirstPersonController {
 
     trapMove(trap, dt) {
         if (trap.direction == false) {
-            trap.components[0].translation[trap.axis] -= dt * trap.speed1;
+            trap.components[2].translation[trap.axis] -= dt * trap.speed1;
             calculateWorldBoundingBox(trap, "trap");
-            if (trap.components[0].translation[0] <= trap.positionFrom) {
+            if (trap.components[2].translation[trap.axis] <= trap.positionFrom) {
                 trap.direction = true;
             }
         }
         if (trap.direction == true) {
-            trap.components[0].translation[trap.axis] += dt * trap.speed2;
+            trap.components[2].translation[trap.axis] += dt * trap.speed2;
             calculateWorldBoundingBox(trap, "trap");
-            if (trap.components[0].translation[0] >= trap.positionTo) {
+            if (trap.components[2].translation[trap.axis] >= trap.positionTo) {
                 trap.direction = false;
             }
         }
-        console.log("trap");
-        if (trap.axis == 2) console.log(trap.components[0].translation);
+        //console.log("trap");
+        //if (trap.axis == 2) console.log(trap.components[2].translation);
     }
 }
