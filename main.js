@@ -36,7 +36,7 @@ const levelNode = scene.find(node => node.getComponentOfType(Model));
 // Calculate the QuadTree for the level
 const levelBounds = new Rectangle(-(calculateDimensions(levelNode).w/2), -(calculateDimensions(levelNode).d/2), calculateDimensions(levelNode).w/2, calculateDimensions(levelNode).d/2);
 
-export const quadTree = new QuadTree(levelBounds, 200);
+export const quadTree = new QuadTree(levelBounds, 50);
 extractTrianglesFromLevel(levelNode, playerHeight);
 
 // Set up the camera
@@ -73,7 +73,7 @@ quat.setAxisAngle(rotationQuaternionk1, zAxisk1, angleInRadiansk1);
 transformk1.rotation = rotationQuaternionk1;
 
 const key2Loader = new GLTFLoader();
-await key2Loader.load('common/models/Key2.gltf');
+await key2Loader.load('common/models/Key1.gltf');
 const sceneKey2 = key2Loader.loadScene(key2Loader.defaultScene);
 const key2Node = sceneKey2.find(node => node.getComponentOfType(Model));
 
@@ -94,24 +94,27 @@ quat.setAxisAngle(rotationQuaternionk2, zAxisk2, angleInRadiansk2);
 transformk2.rotation = rotationQuaternionk2;
 
 const key3Loader = new GLTFLoader();
-await key3Loader.load('common/models/Key1.gltf');
+await key3Loader.load('common/models/Key3.gltf');
 const sceneKey3 = key3Loader.loadScene(key3Loader.defaultScene);
 const key3Node = sceneKey3.find(node => node.getComponentOfType(Model));
 
 key3Node.addComponent(new Transform({
-	scale : [1, 1, 1],
+	scale : [0.5, 0.5, 0.5],
 	translation : [0, 0, 0], // x, z, y
 }));
 key3Node.order = 3;
 key3Node.components[0].translation = [-3.895, 0.3, 2]; // x, z, y
 
-let transformk3 = key3Node.components[0]; // Get the transform component
+let transformk3 = key3Node.components[0];
 let rotationQuaternionk3 = quat.create();
 const zAxisk3 = [0, 1, 0]; // Z-axis for rotation
-const angleInRadiansk3 = Math.PI / 2; // 90 degrees in radians
-// Create a quaternion for a 90-degree rotation around the Z-axis
+const angleInRadiansk3 = Math.PI / 2;
 quat.setAxisAngle(rotationQuaternionk3, zAxisk3, angleInRadiansk3);
-// Apply this quaternion to the trap's rotation
+const yAxis = [-1, 0, 0]; // X-axis for rotation
+const angleYRadians = Math.PI / 2;
+let yRotationQuaternion = quat.create();
+quat.setAxisAngle(yRotationQuaternion, yAxis, angleYRadians);
+quat.multiply(rotationQuaternionk3, rotationQuaternionk3, yRotationQuaternion);
 transformk3.rotation = rotationQuaternionk3;
 
 keys.push(key1Node);

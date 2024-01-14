@@ -108,6 +108,37 @@ export class QuadTree {
                this.bottomLeft.findLeafNode(point);
     }
 
+    // Retrieve all nodes that intersect with the given bounding box
+    queryIntersectingNodes(boundingBox, found = []) {
+        // Create a new bounding box with added buffer
+        const bufferedBoundingBox = {
+            min: {
+                x: boundingBox.min.x - 0.5,
+                y: boundingBox.min.y - 0.5
+            },
+            max: {
+                x: boundingBox.max.x + 0.5,
+                y: boundingBox.max.y + 0.5
+            }
+        };
+    
+        if (!this.boundary.intersectsRectangle(bufferedBoundingBox)) {
+            return found;
+        }
+    
+        if (!this.divided) {
+            found.push(this);
+        } else {
+            this.topRight.queryIntersectingNodes(bufferedBoundingBox, found);
+            this.topLeft.queryIntersectingNodes(bufferedBoundingBox, found);
+            this.bottomRight.queryIntersectingNodes(bufferedBoundingBox, found);
+            this.bottomLeft.queryIntersectingNodes(bufferedBoundingBox, found);
+        }
+    
+        return found;
+    }
+    
+
     // Počisti celoten QuadTree
     clearEntireQuadTree() {
         this.objects = [];
@@ -180,6 +211,14 @@ export class Rectangle {
             }
         }
         return false;
+    }
+
+    // Check if this rectangle intersects with another rectangle (boundingBox)
+    intersectsRectangle(boundingBox) {
+        return !(
+            boundingBox.min.x > this.maxX || boundingBox.max.x < this.minX ||
+            boundingBox.min.y > this.maxY || boundingBox.max.y < this.minY
+        );
     }
 
 }

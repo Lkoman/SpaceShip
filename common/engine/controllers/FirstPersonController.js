@@ -106,9 +106,11 @@ export class FirstPersonController {
             let stepFraction = (step + 1) / numSteps;
             let nextPosition = this.calculateNextPosition(dt * stepFraction);
 
-            let playerNode = quadTree.findLeafNode({ x: nextPosition[0], y: nextPosition[2] });
-            if (playerNode) {
-                for (let object of playerNode.objects) {
+            let playerBox = this.calculateBoundingBoxPlayer(nextPosition);
+            let intersectingNodes = quadTree.queryIntersectingNodes(playerBox);
+
+            for (let node of intersectingNodes) {
+                for (let object of node.objects) {
                     let collisionInfo = this.checkCollisionLevel(nextPosition[0], nextPosition[2], object);
                     if (collisionInfo.collision) {
                         collisionNormals.push(collisionInfo.normal);
@@ -421,7 +423,7 @@ export class FirstPersonController {
         const y2 = object[4].y;
 
         // Buffer area for walls
-        const buffer = 0.15;
+        const buffer = 0.2;
 
         // Calculate the line segment vector
         const lineVec = vec3.fromValues(x2 - x1, 0, y2 - y1);
