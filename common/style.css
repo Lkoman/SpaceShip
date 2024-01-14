@@ -5,6 +5,14 @@ body {
     font-family: 'Arial', sans-serif;
 }
 
+a, a:link, a:visited {
+    background-color: #3498db;
+    color: #ffffff;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+}
+
 #start-menu {
     display: flex;
     align-items: center;
@@ -12,7 +20,64 @@ body {
     height: 100vh;
     position: relative;
     overflow: hidden;
-    /* Ensure video doesn't overflow */
+}
+
+#help-info {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #999;
+}
+
+.switch {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+    background-image: url('../sounf-off.png'); /* Set the path to your unchecked image */
+    background-size: cover;
+}
+
+.switch input {
+    display: none;
+}
+
+.switch input:checked {
+    background-image: url('../sound-on.png'); /* Set the path to your checked image */
+}
+
+#sound-switch-label {
+    position: absolute;
+    bottom: 35px;
+    right: 10px;
+}
+
+#victory-screen,
+#defeat-screen {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+}
+
+#ZMAGA,
+#KONEC {
+    font-size: 50px;
+    padding-bottom: 20px;
+}
+
+#victory-screen {
+    color: gold;
+}
+
+#defeat-screen {
+    color: red;
 }
 
 #video-background {

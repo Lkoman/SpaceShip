@@ -25,8 +25,6 @@ export let keys = [];
 export let doors = [];
 export let traps = [];
 export let playerHeight = 0.3999999761581421;
-export let victory = 0; // 0 = nothing, -1 = defeat, 1 = victory
-
 
 // Load the level model
 const levelLoader = new GLTFLoader();
@@ -52,7 +50,7 @@ modelNode.addComponent(new Transform({
 
 // Add key models
 const key1Loader = new GLTFLoader();
-await key1Loader.load('common/models/Key1.gltf');
+await key1Loader.load('common/models/Key2.gltf');
 const sceneKey1 = key1Loader.loadScene(key1Loader.defaultScene);
 const key1Node = sceneKey1.find(node => node.getComponentOfType(Model));
 
@@ -61,6 +59,16 @@ key1Node.addComponent(new Transform({
 	translation : [0, 0, 0], // x, z, y
 }));
 key1Node.order = 1;
+key1Node.components[0].translation = [0.2, 0.3, 1.5]; // x, z, y
+
+let transformk1 = key1Node.components[0]; // Get the transform component
+let rotationQuaternionk1 = quat.create();
+const zAxisk1 = [0, 1, 0]; // Z-axis for rotation
+const angleInRadiansk1 = Math.PI / 2; // 90 degrees in radians
+// Create a quaternion for a 90-degree rotation around the Z-axis
+quat.setAxisAngle(rotationQuaternionk1, zAxisk1, angleInRadiansk1);
+// Apply this quaternion to the trap's rotation
+transformk1.rotation = rotationQuaternionk1;
 
 const key2Loader = new GLTFLoader();
 await key2Loader.load('common/models/Key2.gltf');
@@ -72,9 +80,19 @@ key2Node.addComponent(new Transform({
 	translation : [0, 0, 0], // x, z, y
 }));
 key2Node.order = 2;
+key2Node.components[0].translation = [4.6, 0.3, -3.3]; // x, z, y
+
+let transformk2 = key2Node.components[0]; // Get the transform component
+let rotationQuaternionk2 = quat.create();
+const zAxisk2 = [0, 1, 0]; // Z-axis for rotation
+const angleInRadiansk2 = Math.PI / 2; // 90 degrees in radians
+// Create a quaternion for a 90-degree rotation around the Z-axis
+quat.setAxisAngle(rotationQuaternionk2, zAxisk2, angleInRadiansk2);
+// Apply this quaternion to the trap's rotation
+transformk2.rotation = rotationQuaternionk2;
 
 const key3Loader = new GLTFLoader();
-await key3Loader.load('common/models/Key2.gltf');
+await key3Loader.load('common/models/Key1.gltf');
 const sceneKey3 = key3Loader.loadScene(key3Loader.defaultScene);
 const key3Node = sceneKey3.find(node => node.getComponentOfType(Model));
 
@@ -83,11 +101,17 @@ key3Node.addComponent(new Transform({
 	translation : [0, 0, 0], // x, z, y
 }));
 key3Node.order = 3;
+key3Node.components[0].translation = [-3.895, 0.3, 2]; // x, z, y
 
-// Set the position of keys
-key1Node.components[0].translation = [1, 0.3, 0]; // x, z, y
-key2Node.components[0].translation = [4.5, 0.3, -3.3]; // x, z, y
-key3Node.components[0].translation = [-4, 0.3, 2]; // x, z, y
+let transformk3 = key3Node.components[0]; // Get the transform component
+let rotationQuaternionk3 = quat.create();
+const zAxisk3 = [0, 1, 0]; // Z-axis for rotation
+const angleInRadiansk3 = Math.PI / 2; // 90 degrees in radians
+// Create a quaternion for a 90-degree rotation around the Z-axis
+quat.setAxisAngle(rotationQuaternionk3, zAxisk3, angleInRadiansk3);
+// Apply this quaternion to the trap's rotation
+transformk3.rotation = rotationQuaternionk3;
+
 keys.push(key1Node);
 keys.push(key2Node);
 keys.push(key3Node);
@@ -171,6 +195,7 @@ scene.addChild(door2Node);
 scene.addChild(door3Node);
 
 // Add trap models
+// Spikes
 const trap1Loader = new GLTFLoader();
 await trap1Loader.load('common/models/Spikes.gltf');
 const sceneTrap1 = trap1Loader.loadScene(trap1Loader.defaultScene);
@@ -180,7 +205,12 @@ trap1Node.addComponent(new Transform({
     scale : [1,1,1],
     translation : [0, 0, 0], // x, z, y
 }));
-trap1Node.components[0].translation = [0.0230344068 - 0.1,0.399999976 - 0.3,0.412283927]
+trap1Node.speed1 = 1;
+trap1Node.speed2 = 0.24;
+trap1Node.positionFrom = -0.4 + 3.55;
+trap1Node.positionTo = -0.08 + 3.55;
+trap1Node.axis = 0;
+trap1Node.components[0].translation = [0.0230344068 + 3, 0.399999976 - 0.3, 0.412283927 + 0.11];
 trap1Node.components[0].rotation = [0, 0, 0, 0.999506533];
 
 let transform = trap1Node.components[0]; // Get the transform component
@@ -192,7 +222,54 @@ quat.setAxisAngle(rotationQuaternion, zAxis, angleInRadians);
 // Apply this quaternion to the trap's rotation
 transform.rotation = rotationQuaternion;
 
+const trap2Loader = new GLTFLoader();
+await trap2Loader.load('common/models/Spikes.gltf');
+const sceneTrap2 = trap2Loader.loadScene(trap2Loader.defaultScene);
+const trap2Node = sceneTrap2.find(node => node.getComponentOfType(Model));
+
+trap2Node.addComponent(new Transform({
+    scale : [1,1,1],
+    translation : [0, 0, 0], // x, z, y
+}));
+trap2Node.speed1 = 1.5;
+trap2Node.speed2 = 0.12;
+trap2Node.positionFrom = -0.4 + 3.55;
+trap2Node.positionTo = -0.08 + 3.55;
+trap2Node.axis = 0;
+trap2Node.components[0].translation = [0.0230344068 + 3, 0.399999976 - 0.3, 0.412283927 + 0.7];
+trap2Node.components[0].rotation = [0, 0, 0, 0.999506533];
+
+let transformt2 = trap2Node.components[0]; // Get the transform component
+let rotationQuaterniont2 = quat.create();
+const zAxist2 = [0, 1, 0]; // Z-axis for rotation
+const angleInRadianst2 = Math.PI / 2; // 90 degrees in radians
+// Create a quaternion for a 90-degree rotation around the Z-axis
+quat.setAxisAngle(rotationQuaterniont2, zAxist2, angleInRadianst2);
+// Apply this quaternion to the trap's rotation
+transformt2.rotation = rotationQuaterniont2;
+
+const trap3Loader = new GLTFLoader();
+await trap3Loader.load('common/models/Spikes.gltf');
+const sceneTrap3 = trap3Loader.loadScene(trap3Loader.defaultScene);
+const trap3Node = sceneTrap3.find(node => node.getComponentOfType(Model));
+
+trap3Node.addComponent(new Transform({
+    scale : [1,1,1],
+    translation : [0, 0, 0], // x, z, y
+}));
+trap3Node.speed1 = 0.4;
+trap3Node.speed2 = 0.2;
+trap3Node.positionFrom = 1.9426839269999858;
+trap3Node.positionTo = 2.8718839269999967;
+trap3Node.axis = 2;
+trap3Node.components[0].translation = [0.0230344068 - 1, 0.399999976 - 0.3, 0.412283927];
+trap3Node.components[0].rotation = [0, 0, 0, 0.999506533];
+
+console.log(trap3Node);	
+
 traps.push(trap1Node);
+traps.push(trap2Node);
+traps.push(trap3Node);
 
 for (let trap of traps) {
     calculateWorldBoundingBox(trap, "trap");
@@ -200,6 +277,8 @@ for (let trap of traps) {
 }
 
 scene.addChild(trap1Node);
+scene.addChild(trap2Node);
+scene.addChild(trap3Node);
 
 //
 // LIGHT COMPONENTS

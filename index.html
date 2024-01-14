@@ -108,7 +108,8 @@
     </div>
 
     <script type="module">
-        import { victory } from './main.js';
+        import { victory } from './common/engine/controllers/FirstPersonController.js';
+        console.log(victory);
         const video = document.getElementById('video-background');
         const siren = document.getElementById('Siren');
         const menuSound = document.getElementById('menu-sound');
@@ -164,20 +165,22 @@
 
                 startTime = new Date();
                 timerInterval = setInterval(updateTimer, 1000);
+            }
+        });
 
-                if (victory == 1) {
-                    document.getElementById('victory-screen').style.display = 'block';
-                    ambient.pause();
-                    clearInterval(timerInterval);
-                    victorySound.play()
-                }
+        document.addEventListener('keydown', function(event) {
+            if (victory == 1) {
+                document.getElementById('victory-screen').style.display = 'block';
+                ambient.pause();
+                clearInterval(timerInterval);
+                victorySound.play()
+            }
 
-                if (victory == -1) {
-                    document.getElementById('defeat-screen').style.display = 'block';
-                    ambient.pause();
-                    clearInterval(timerInterval);
-                    defeteSound.play()
-                }
+            if (victory == -1) {
+                document.getElementById('defeat-screen').style.display = 'block';
+                ambient.pause();
+                clearInterval(timerInterval);
+                defeteSound.play()
             }
         });
 

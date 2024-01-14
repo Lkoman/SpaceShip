@@ -27,7 +27,7 @@ export class Renderer extends BaseRenderer {
         });
 
         // Set clear color and enable necessary WebGL capabilities
-        gl.clearColor(1, 1, 1, 1);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
         gl.cullFace(gl.BACK);

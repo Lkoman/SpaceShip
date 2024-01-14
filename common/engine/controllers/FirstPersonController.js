@@ -2,9 +2,10 @@ import { quat, vec3, mat4 } from '../../../lib/gl-matrix-module.js';
 import { Transform } from '../core/Transform.js';
 import { QuadTree, Rectangle } from '../../../QuadTree.js';
 
-
 // Import object arrays from main.js
-import { calculateWorldBoundingBox, traps, keys, quadTree, camera, playerHeight, doors, scene, victory } from '../../../main.js';
+import { calculateWorldBoundingBox, traps, keys, quadTree, doors, scene } from '../../../main.js';
+
+export let victory = 0; // 0 = nothing, -1 = defeat, 1 = victory
 
 export class FirstPersonController {
 
@@ -92,7 +93,7 @@ export class FirstPersonController {
         // Collision detection with walls
         let collisionNormals = [];
         let currentPosition = vec3.clone(transform.translation);
-        //console.log(currentPosition[0] + ", " + currentPosition[1] + ", " + currentPosition[2]);
+        console.log(currentPosition[0] + ", " + currentPosition[2]);
         const numSteps = 5;
         const collisionTolerance = 0.05;
         let finalPositionSafe = true;
@@ -268,13 +269,11 @@ export class FirstPersonController {
         // Traps
         for (let trap of traps) {
             if (this.checkCollision(playerBox, trap.boundingBoxTraps)) {
-                console.log("Collision with a trap detected!" )
                 // DEATH
                 victory = -1;
             }
             this.trapMove(trap, dt);
         }
-
         // Update velocity
         vec3.scaleAndAdd(this.velocity, this.velocity, acc, dt * this.acceleration * sprintMultiplier);
 
@@ -477,18 +476,20 @@ export class FirstPersonController {
 
     trapMove(trap, dt) {
         if (trap.direction == false) {
-            trap.components[0].translation[0] -= dt * 0.12;
+            trap.components[0].translation[trap.axis] -= dt * trap.speed1;
             calculateWorldBoundingBox(trap, "trap");
-            if (trap.components[0].translation[0] <= -0.4) {
+            if (trap.components[0].translation[0] <= trap.positionFrom) {
                 trap.direction = true;
             }
         }
         if (trap.direction == true) {
-            trap.components[0].translation[0] += dt * 0.12;
+            trap.components[0].translation[trap.axis] += dt * trap.speed2;
             calculateWorldBoundingBox(trap, "trap");
-            if (trap.components[0].translation[0] >= -0.08) {
+            if (trap.components[0].translation[0] >= trap.positionTo) {
                 trap.direction = false;
             }
         }
+        console.log("trap");
+        if (trap.axis == 2) console.log(trap.components[0].translation);
     }
 }
