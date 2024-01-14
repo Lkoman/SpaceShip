@@ -182,7 +182,7 @@ quat.setAxisAngle(rotationQuaternion3d, zAxis3d, angleInRadians3d);
 transform3d.rotation = rotationQuaternion3d;
 
 doors.push(door1Node);
-//doors.push(door2Node);
+doors.push(door2Node);
 doors.push(door3Node);
 
 for (let door of doors) {
@@ -192,7 +192,7 @@ for (let door of doors) {
 }
 
 scene.addChild(door1Node);
-//scene.addChild(door2Node);
+scene.addChild(door2Node);
 scene.addChild(door3Node);
 
 // Add trap models
