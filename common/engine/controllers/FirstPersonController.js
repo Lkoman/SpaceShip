@@ -4,7 +4,7 @@ import { QuadTree, Rectangle } from '../../../QuadTree.js';
 
 
 // Import object arrays from main.js
-import { calculateWorldBoundingBox, traps, keys, quadTree, camera, playerHeight, doors, scene } from '../../../main.js';
+import { calculateWorldBoundingBox, traps, keys, quadTree, camera, playerHeight, doors, scene, victory } from '../../../main.js';
 
 export class FirstPersonController {
 
@@ -92,6 +92,7 @@ export class FirstPersonController {
         // Collision detection with walls
         let collisionNormals = [];
         let currentPosition = vec3.clone(transform.translation);
+        //console.log(currentPosition[0] + ", " + currentPosition[1] + ", " + currentPosition[2]);
         const numSteps = 5;
         const collisionTolerance = 0.05;
         let finalPositionSafe = true;
@@ -226,15 +227,16 @@ export class FirstPersonController {
         for (let door of doors) {
             if (this.checkCollision(playerBox, door.boundingBox)) {
                 collisionWithDoor = true;
+                console.log("Collision with door detected!" )
         
                 // Calculate door normal based on door orientation
                 let doorNormal = vec3.create(); // Initialize the doorNormal vector
                 if (door.order == 1) {
                     vec3.set(doorNormal, 1, 0, 0); 
                 } else if (door.order == 2) {
-
+                    vec3.set(doorNormal, -1, 0, 0); 
                 } else if (door.order == 3) {
-
+                    vec3.set(doorNormal, 0, 0, -1); 
                 }
     
                 // Prevent movement in the direction of the door
@@ -261,6 +263,16 @@ export class FirstPersonController {
         let sprintMultiplier = 1;
         if (this.isShiftPressed && !isAnyKeyPickedUp) {
             sprintMultiplier = 2; // Adjust this value for desired sprint speed
+        }
+
+        // Traps
+        for (let trap of traps) {
+            if (this.checkCollision(playerBox, trap.boundingBoxTraps)) {
+                console.log("Collision with a trap detected!" )
+                // DEATH
+                victory = -1;
+            }
+            this.trapMove(trap, dt);
         }
 
         // Update velocity
@@ -443,19 +455,40 @@ export class FirstPersonController {
         // Assuming door has a property 'height' indicating its current height
         const openHeight = 0.5; // Maximum height to which the door opens
         if (door.components[0].translation[1] < openHeight) {
-            door.components[0].translation[1] += dt * 0.1; // doorOpeningSpeed is the speed at which the door opens
+            door.components[0].translation[1] += dt * 0.2; // doorOpeningSpeed is the speed at which the door opens
             door.opening = true;
             calculateWorldBoundingBox(door, "door");
             for (let key of keys) {
                 if (key.order == door.order) {
                     scene.removeChild(key);
-                    keys.splice(0, keys.length, ...keys.filter(key => key.order != 1));
+                    //keys.splice(0, keys.length, ...keys.filter(key => key.order == door.order));
                     break;
                 }
             }
         } else {
             door.open = true;
             door.opening = false;
+
+            if (door.order == 3) {
+                victory = 1;
+            }
+        }
+    }
+
+    trapMove(trap, dt) {
+        if (trap.direction == false) {
+            trap.components[0].translation[0] -= dt * 0.12;
+            calculateWorldBoundingBox(trap, "trap");
+            if (trap.components[0].translation[0] <= -0.4) {
+                trap.direction = true;
+            }
+        }
+        if (trap.direction == true) {
+            trap.components[0].translation[0] += dt * 0.12;
+            calculateWorldBoundingBox(trap, "trap");
+            if (trap.components[0].translation[0] >= -0.08) {
+                trap.direction = false;
+            }
         }
     }
 }

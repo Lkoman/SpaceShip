@@ -2,7 +2,6 @@
 <html>
 
 <head>
-    <meta name="test">
     <meta charset="utf-8">
     <title>Ishimura Evakuacija</title>
     <link rel="stylesheet" href="common/style.css">
@@ -14,13 +13,11 @@
 
 <body>
     <div id="start-menu" class="fullscreen pixelated">
-        <!-- Video background -->
         <video id="video-background" autoplay muted loop>
             <source src="MenuAnimationLQ.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
 
-        <!-- Content overlay -->
         <div id="content-overlay">
             <img src="Ishimura_Evakuacija_text.png" alt="text">
             <p><input type="text" id="playerName" placeholder="uporabniško ime" required></p>
@@ -43,6 +40,16 @@
         Your browser does not support the audio tag.
     </audio>
 
+    <audio id="victory-sound">
+        <source src="victory-sound.mp3" type="audio/mpeg">
+        Your browser does not support the audio tag.
+    </audio>
+
+    <audio id="defeat-sound">
+        <source src="defeat-sound.mp3" type="audio/mpeg">
+        Your browser does not support the audio tag.
+    </audio>
+
     <div id="controls">
         <table style="width:100%">
             <tr>
@@ -56,6 +63,10 @@
             <tr>
                 <td><img src="E_key.png" id="control-img" style="scale: 70%;"></td>
                 <td>interakcija</td>
+            </tr>
+            <tr>
+                <td><img src="Ctrl_key.png" id="control-img" style="scale: 70%;"></td>
+                <td>počepni</td>
             </tr>
         </table>
     </div>
@@ -82,15 +93,28 @@
 
     <div id="timer" style="display: none;">00:00</div>
 
+    <div id="defeat-screen" style="display: none;">
+        <p id="KONEC"><b>KONEC IGRE</b></p>
+        <p><a href="index.html">NOVA IGRA</a></p>
+    </div>
+
+    <div id="victory-screen" style="display: none;">
+        <p id="ZMAGA"><b>ZMAGA</b></p>
+        <p></p><a href="index.html">NOVA IGRA</a></p>
+    </div>
+
     <div id="game-container" class="fullscreen pixelated" style="display: none;">
         <canvas id="game-canvas"></canvas>
     </div>
 
-    <script>
+    <script type="module">
+        import { victory } from './main.js';
         const video = document.getElementById('video-background');
         const siren = document.getElementById('Siren');
         const menuSound = document.getElementById('menu-sound');
         const ambient = document.getElementById('ambient');
+        const victorySound = document.getElementById('victory-sound');
+        const defeteSound = document.getElementById('defeat-sound');
         menuSound.play()
         video.playbackRate = 0.8;
         siren.volume = 0.3;
@@ -98,7 +122,6 @@
         let startTime;
         let timerInterval;
 
-        // Function to update the timer display
         function updateTimer() {
             const currentTime = new Date();
             const elapsedTime = Math.floor((currentTime - startTime) / 1000);
@@ -106,54 +129,58 @@
             const minutes = Math.floor(elapsedTime / 60);
             const seconds = elapsedTime % 60;
 
-            // Format the time as MM:SS
             const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
             document.getElementById('timer').textContent = formattedTime;
         }
 
-        // Function to check if the player name is empty
         function isPlayerNameEmpty() {
             const playerNameInput = document.getElementById('playerName');
             return playerNameInput.value.trim() === '';
         }
 
-        // Function to enable or disable the Start Game button based on the input
         function updateStartButtonState() {
             const startButton = document.getElementById('start-button');
             startButton.disabled = isPlayerNameEmpty();
         }
 
-        // Add event listener to player name input for real-time validation
         document.getElementById('playerName').addEventListener('input', updateStartButtonState);
 
-        // Add event listener to start button
         document.getElementById('start-button').addEventListener('click', function () {
             if (!isPlayerNameEmpty()) {
-                // Hide the start menu
                 document.getElementById('start-menu').style.display = 'none';
                 siren.play();
                 ambient.play();
                 menuSound.pause();
 
-                // Show the story box & controls
                 document.getElementById('story-box').style.display = 'block';
                 document.getElementById('controls').style.display = 'block';
 
-                // Hide the story box when button is clicked
                 document.getElementById('story-button').addEventListener('click', function () {
                     document.getElementById('story-box').style.display = 'none';
                     document.getElementById('controls').style.display = 'none';
                 });
-                // Show the game container
                 document.getElementById('game-container').style.display = 'block';
                 document.getElementById('timer').style.display = 'block';
 
                 startTime = new Date();
                 timerInterval = setInterval(updateTimer, 1000);
+
+                if (victory == 1) {
+                    document.getElementById('victory-screen').style.display = 'block';
+                    ambient.pause();
+                    clearInterval(timerInterval);
+                    victorySound.play()
+                }
+
+                if (victory == -1) {
+                    document.getElementById('defeat-screen').style.display = 'block';
+                    ambient.pause();
+                    clearInterval(timerInterval);
+                    defeteSound.play()
+                }
             }
         });
 
-        // Initialize the state of the Start Game button
         updateStartButtonState();
     </script>
 </body>
