@@ -234,7 +234,6 @@
                 } else if (diedBy == "slime") {
                     document.getElementById('defeat-screen-slime').style.display = 'block';
                 }
-                document.getElementById('damage').pause();
                 ambient.pause();
                 clearInterval(timerInterval);
                 defeteSound.play()
@@ -247,13 +246,18 @@
             } else document.getElementById('door-opening').pause();
 
             let damageAudioElement = document.getElementById('damage');
-            if (damageSound == true && damageAudioElement.paused) {
+            if (damageSound == true && damageAudioElement.paused && victory > -3) {
                 damageAudioElement.play();
             }
 
+            let walkingAudioElement = document.getElementById('walking');
+            walkingAudioElement.volume = 0.035; // Set the volume to 50%
+
             if (walkingSound == true) {
-                document.getElementById('walking').play();
-            } else document.getElementById('walking').pause();
+                walkingAudioElement.play();
+            } else {
+                walkingAudioElement.pause();
+            }
         }
 
         // Set the interval to 100 miliseconds

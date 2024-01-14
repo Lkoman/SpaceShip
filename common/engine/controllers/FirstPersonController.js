@@ -298,7 +298,7 @@ export class FirstPersonController {
         // Update velocity
         vec3.scaleAndAdd(this.velocity, this.velocity, acc, dt * this.acceleration * sprintMultiplier);
 
-        const velocityThreshold = 0.001;
+        const velocityThreshold = 0.01;
         // If there is no user input, apply decay.
         if (!this.keys['KeyW'] && !this.keys['KeyS'] && !this.keys['KeyD'] && !this.keys['KeyA']) {
             const decay = Math.exp(dt * Math.log(1 - this.decay));
