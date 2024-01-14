@@ -234,6 +234,7 @@
                 } else if (diedBy == "slime") {
                     document.getElementById('defeat-screen-slime').style.display = 'block';
                 }
+                document.getElementById('damage').pause();
                 ambient.pause();
                 clearInterval(timerInterval);
                 defeteSound.play()
@@ -253,10 +254,6 @@
             if (walkingSound == true) {
                 document.getElementById('walking').play();
             } else document.getElementById('walking').pause();
-
-            if (deathSoundPlayed) {
-                document.getElementById('damage').pause();
-            }
         }
 
         // Set the interval to 100 miliseconds
