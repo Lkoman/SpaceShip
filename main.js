@@ -24,6 +24,7 @@ await renderer.initialize();
 export let keys = [];
 export let doors = [];
 export let traps = [];
+export let slimes = [];
 export let playerHeight = 0.3999999761581421;
 
 // Load the level model
@@ -281,14 +282,41 @@ traps.push(trap3Node);
 traps.push(trap4Node);
 
 for (let trap of traps) {
-    calculateWorldBoundingBox(trap, "trap");
+    //calculateWorldBoundingBox(trap, "trap");
     trap.direction = true;
+    trap.type = "spikes";
 }
 
 scene.addChild(trap1Node);
 scene.addChild(trap2Node);
 scene.addChild(trap3Node);
 scene.addChild(trap4Node);
+
+// Slime
+const slime1Loader = new GLTFLoader();
+await slime1Loader.load('common/models/Slime.gltf');
+const sceneSlime1 = slime1Loader.loadScene(slime1Loader.defaultScene);
+const slime1Node = sceneSlime1.find(node => node.getComponentOfType(Model));
+
+slime1Node.addComponent(new Transform({
+    scale : [0.7,0.7,0.7],
+    translation : [0.045, 0, 0.51], // x, z, y
+}));
+traps.push(slime1Node);
+slime1Node.type = "slime";
+
+console.log(slime1Node);
+
+// Vsi trapi združeni
+for (let trap of traps) {
+    calculateWorldBoundingBox(trap, "trap");
+}
+
+scene.addChild(trap1Node);
+scene.addChild(trap2Node);
+scene.addChild(trap3Node);
+scene.addChild(trap4Node);
+scene.addChild(slime1Node);
 
 //
 // LIGHT COMPONENTS

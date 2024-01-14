@@ -273,7 +273,8 @@ export class FirstPersonController {
                 victory = -1;
                 console.log("Collision with trap detected!");
             }
-            this.trapMove(trap, dt);
+            if (trap.type == "spikes")
+                this.trapMove(trap, dt);
         }
         // Update velocity
         vec3.scaleAndAdd(this.velocity, this.velocity, acc, dt * this.acceleration * sprintMultiplier);
